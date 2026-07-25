@@ -1,6 +1,7 @@
-from .database import database
+from .database import SessionLocal
+from .session import pegar_sessao
 
 __all__ = [
-    database
-    ,session
+    SessionLocal
+    ,pegar_sessao
 ]
