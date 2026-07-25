@@ -1,14 +1,9 @@
 from sqlalchemy.orm import Session, sessionmaker
-from DEPENDENCIES import database
+from DEPENDENCIES import SessionLocal
 
-def pegar_sessao():
+def pegar_sessao() -> Session:
+    db = SessionLocal()
     try:
-        db = database.gerar_conexao()
-
-        Session = sessionmaker(bind=db)
-        session = Session()
-
-        yield session
+        yield db
     finally:
-        session.close_all()
-    
+        db.close_all()
