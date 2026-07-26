@@ -1,0 +1,20 @@
+from sqlalchemy import String, Integer, Boolean, Float, ForeignKey, DateTime, CheckConstraint, TIMESTAMP, func
+from sqlalchemy.orm import Mapped, mapped_column
+from datetime import datetime, UTC
+from MODELS import Base
+
+class Competencias(Base):
+
+    __tablename__ = "competencias"
+
+    id_competencia: Mapped[int] = mapped_column(primary_key=True)
+
+    nome_competencia: Mapped[str] = mapped_column(
+        String(100)
+        ,unique=True
+    )
+
+    data_criacao: Mapped[datetime] = mapped_column(
+        TIMESTAMP()
+        ,server_default=func.current_timestamp()
+    )
