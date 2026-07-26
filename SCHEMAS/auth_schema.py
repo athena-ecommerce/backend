@@ -61,3 +61,41 @@ class UsuarioLoginResposta(BaseModel):
         str_strip_whitespace=True, 
         frozen=True,
     )
+
+class RecuperarSenha(BaseModel):
+
+    email: str
+
+    model_config = ConfigDict(
+        from_attributes=True,      
+        extra="forbid",            
+        validate_assignment=True,  
+        str_strip_whitespace=True, 
+        frozen=True,
+    )
+
+class RecuperarSenhaCodigo(BaseModel):
+
+    email: str
+    codigo: str
+
+    model_config = ConfigDict(
+        from_attributes=True,      
+        extra="forbid",            
+        validate_assignment=True,  
+        str_strip_whitespace=True, 
+        frozen=True,
+    )
+
+class RecuperarSenhaNovaSenha(BaseModel):
+
+    email: str
+    senha: str
+
+    model_config = ConfigDict(
+        from_attributes=True,      
+        extra="forbid",            
+        validate_assignment=True,  
+        str_strip_whitespace=True, 
+        frozen=True,
+    )

@@ -7,6 +7,7 @@ from .produtos import Produtos
 from .telefones import Telefones
 from .usuarios import Usuarios
 from .usuarios_competencias import Usuarios_Competencias
+from .recuperacoes_senhas import Recuperacoes_Senhas
 
 __all__ = [
     Base
@@ -18,4 +19,5 @@ __all__ = [
     ,Telefones
     ,Usuarios
     ,Usuarios_Competencias
+    ,Recuperacoes_Senhas
 ]
