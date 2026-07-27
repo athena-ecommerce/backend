@@ -89,7 +89,6 @@ class RecuperarSenhaCodigo(BaseModel):
 
 class RecuperarSenhaNovaSenha(BaseModel):
 
-    email: str
     senha: str
 
     model_config = ConfigDict(
