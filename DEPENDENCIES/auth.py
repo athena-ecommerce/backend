@@ -20,9 +20,9 @@ def verificar_token_oauth(token: str = Depends(oauth2_schema), db:Session = Depe
         raise HTTPException(status_code=401, detail="Acesso Inválido!")
     return usuario
 
-def verificar_token(refresh_token: str, db: Session):
+def verificar_token(token: str, db: Session):
     try:
-        dic_info = jwt.decode(refresh_token,SECRET_KEY,ALGORITHM)
+        dic_info = jwt.decode(token,SECRET_KEY,ALGORITHM)
         id_usuario = int(dic_info.get("sub"))
     except JWTError:
         raise HTTPException(status_code=401, detail="Acesso Negado! Verfique a validade do token.")

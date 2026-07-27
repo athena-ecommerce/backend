@@ -161,7 +161,7 @@ async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Dep
     tempo_expiracao = datetime.utcnow() + timedelta(minutes=2)
 
     db.add(
-        Recuperacao_Senha(
+        Recuperacoes_Senhas(
             login=email
             ,codigo=codigo_criptografado
             ,tempo_expiracao=tempo_expiracao
@@ -178,14 +178,14 @@ async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Dep
         }
     )
 
-@auth_router.get("/resetpassword/validation")
+@auth_router.post("/resetpassword/validation")
 async def validar_codigo_resetar_senha(codigo_schema: RecuperarSenhaCodigo, db: Session = Depends(pegar_sessao)):
     email = codigo_schema.email
     codigo = codigo_schema.codigo
     stmt = select(Recuperacoes_Senhas).where(
         email==Recuperacoes_Senhas.login
         ,datetime.utcnow()<=Recuperacoes_Senhas.tempo_expiracao
-        ,usado==False
+        ,Recuperacoes_Senhas.usado==False
     )
     recuperacao = db.scalar(stmt)
     if not recuperacao:
@@ -194,24 +194,32 @@ async def validar_codigo_resetar_senha(codigo_schema: RecuperarSenhaCodigo, db: 
         raise HTTPException(status_code=400, detail="Código inválido. Verifique se o código está correto e se o tempo não expirou!")
     
     recuperacao.usado = True
+
+    stmt = select(Usuarios).where(Usuarios.login == email)
+    usuario = db.scalar(stmt)
+    
+    dic_inf = {
+        "sub":str(usuario.id_usuario)
+        ,"exp":datetime.utcnow() + timedelta(minutes=2)
+        ,"type":"access"
+    }
+
     db.commit()
 
-    return JSONResponse(
-        status_code=200
-        ,content={
-            "mensagem": "Código correto!"
-        }
-    )
+    jwt_permissao = jwt.encode(dic_inf,SECRET_KEY,ALGORITHM)
+
+    return {
+        "token_validation":jwt_permissao
+    }
 
 @auth_router.post("/resetpassword/newpassword")
-async def mudar_senha(senha_schema: RecuperarSenhaNovaSenha, db: Session = Depends(pegar_sessao)):
-    stmt = select(Usuarios).where(Usuarios.login == senha_schema.email)
-    usuario = db.scalar(stmt)
+async def mudar_senha(senha_schema: RecuperarSenhaNovaSenha,token_validation: str, db: Session = Depends(pegar_sessao)):
 
+    usuario = verificar_token(token_validation,db)
     senha_criptografada = bcrypt_context.hash(senha_schema.senha)
     usuario.senha = senha_criptografada
 
-    commit()
+    db.commit()
     return JSONResponse(
         status_code=200
         ,content={
