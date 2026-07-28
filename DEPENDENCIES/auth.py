@@ -1,39 +1,35 @@
-from fastapi import Depends, HTTPException, status
-from jose import jwt, JWTError
-from sqlalchemy.orm import Session
-
-from CORE import SECRET_KEY, ALGORITHM, oauth2_schema
-from DEPENDENCIES.session import pegar_sessao
 from MODELS import Usuarios
+from sqlalchemy.orm import sessionmaker,Session
+from sqlalchemy import select
+from fastapi import Depends, HTTPException
+from jose import jwt, JWTError
+from CORE import SECRET_KEY, ALGORITHM, oauth2_schema
+from DEPENDENCIES import pegar_sessao
 
-# OBS: Essa dependência decodifica o token JWT enviado pelo usuário e busca ele no banco.
-# Ainda não existe uma rota de login que gere o token (com "sub" = id_usuario),
-# então essa função só vai funcionar de verdade quando essa rota existir.
-
-
-def usuario_logado(
-    token: str = Depends(oauth2_schema),
-    db: Session = Depends(pegar_sessao),
-) -> Usuarios:
-    excecao_credenciais = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Não foi possível validar as credenciais",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
+def verificar_token_oauth(token: str = Depends(oauth2_schema), db:Session = Depends(pegar_sessao)):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        id_usuario = payload.get("sub")
-
-        if id_usuario is None:
-            raise excecao_credenciais
-
+        dic_info = jwt.decode(token,SECRET_KEY,ALGORITHM)
+        id_usuario = int(dic_info.get("sub"))
     except JWTError:
-        raise excecao_credenciais
+        raise HTTPException(status_code=401, detail="Acesso Negado! Verfique a validade do token.")
+    #Verificar se o token é válido
+    #Extrair o id_usuario
+    stmt = select(Usuarios).where(Usuarios.id_usuario == id_usuario)
+    usuario = db.scalar(stmt)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Acesso Inválido!")
+    return usuario
 
-    usuario = db.get(Usuarios, int(id_usuario))
-
-    if usuario is None:
-        raise excecao_credenciais
-
+def verificar_token(token: str, db: Session):
+    try:
+        dic_info = jwt.decode(token,SECRET_KEY,ALGORITHM)
+        id_usuario = int(dic_info.get("sub"))
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Acesso Negado! Verfique a validade do token.")
+    #Verificar se o token é válido
+    #Extrair o id_usuario
+    stmt = select(Usuarios).where(Usuarios.id_usuario == id_usuario)
+    usuario = db.scalar(stmt)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Acesso Inválido!")
     return usuario
