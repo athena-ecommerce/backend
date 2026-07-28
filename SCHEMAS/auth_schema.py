@@ -35,23 +35,66 @@ class UsuarioCadastroResposta(BaseModel):
         frozen=True,
     )
 
-
 class UsuarioLogin(BaseModel):
 
     login: str
     senha: str
 
     model_config = ConfigDict(
-        extra="forbid",
-        str_strip_whitespace=True,
+        from_attributes=True,      
+        extra="forbid",            
+        validate_assignment=True,  
+        str_strip_whitespace=True, 
+        frozen=True,
     )
 
+class UsuarioLoginResposta(BaseModel):
 
-class TokenResposta(BaseModel):
-
+    login: str
     access_token: str
-    token_type: str
+    refresh_token: str
 
     model_config = ConfigDict(
-        extra="forbid",
+        from_attributes=True,      
+        extra="forbid",            
+        validate_assignment=True,  
+        str_strip_whitespace=True, 
+        frozen=True,
+    )
+
+class RecuperarSenha(BaseModel):
+
+    email: str
+
+    model_config = ConfigDict(
+        from_attributes=True,      
+        extra="forbid",            
+        validate_assignment=True,  
+        str_strip_whitespace=True, 
+        frozen=True,
+    )
+
+class RecuperarSenhaCodigo(BaseModel):
+
+    email: str
+    codigo: str
+
+    model_config = ConfigDict(
+        from_attributes=True,      
+        extra="forbid",            
+        validate_assignment=True,  
+        str_strip_whitespace=True, 
+        frozen=True,
+    )
+
+class RecuperarSenhaNovaSenha(BaseModel):
+
+    senha: str
+
+    model_config = ConfigDict(
+        from_attributes=True,      
+        extra="forbid",            
+        validate_assignment=True,  
+        str_strip_whitespace=True, 
+        frozen=True,
     )
