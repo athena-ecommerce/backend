@@ -34,3 +34,24 @@ class UsuarioCadastroResposta(BaseModel):
         str_strip_whitespace=True, 
         frozen=True,
     )
+
+
+class UsuarioLogin(BaseModel):
+
+    login: str
+    senha: str
+
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+    )
+
+
+class TokenResposta(BaseModel):
+
+    access_token: str
+    token_type: str
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )

@@ -25,7 +25,7 @@ def cadastrar_usuario(usuario: Usuarios, db: Session):
     db.refresh(usuario)
     return usuario
 
-    
+
 @auth_router.post("/cadastrar", response_model=UsuarioCadastroResposta)
 async def cadastrar(usuario_schema: UsuarioCadastro, db: Session = Depends(pegar_sessao)):
     novo_usuario = Usuarios(
