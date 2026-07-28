@@ -1,12 +1,13 @@
-from .auth_schema import UsuarioCadastro, UsuarioCadastroResposta, UsuarioLogin, TokenResposta
+from .auth_schema import UsuarioCadastro, UsuarioCadastroResposta, UsuarioLogin, UsuarioLoginResposta, RecuperarSenha, RecuperarSenhaCodigo, RecuperarSenhaNovaSenha
 from .produtos_schema import ArteCadastro, ArteAtualizar, ArteResposta
 
-__all__ = (
+__all__ = [
     UsuarioCadastro,
     UsuarioCadastroResposta,
-    UsuarioLogin,
-    TokenResposta,
+    RecuperarSenha,
+    RecuperarSenhaCodigo,
+    RecuperarSenhaNovaSenha,
     ArteCadastro,
     ArteAtualizar,
-    ArteResposta,
-)
+    ArteResposta
+]
