@@ -51,7 +51,7 @@ def validar_login(login:str, senha:str, db:Session):
         return False
     elif not bcrypt_context.verify(senha, usuario.senha):
         return False
-    
+
     return usuario
 
 def criar_token(id_usuario: str, duracao_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),tipo="access"):
@@ -68,7 +68,7 @@ def criar_token(id_usuario: str, duracao_token=timedelta(minutes=ACCESS_TOKEN_EX
         return False
     return jwt_codificado
 
-    
+
 @auth_router.post("/signup", response_model=UsuarioCadastroResposta)
 async def cadastrar(usuario_schema: UsuarioCadastro, db: Session = Depends(pegar_sessao)):
     novo_usuario = Usuarios(
@@ -109,7 +109,7 @@ async def login_form(dados_formulario: OAuth2PasswordRequestForm = Depends(), db
         access_token = criar_token(usuario.id_usuario)
         return {
             "access_token":access_token,
-            "token_type":"Bearer" 
+            "token_type":"Bearer"
         }
     else:
         HTTPException(status_code=400, detail="Usuário não encontrado!")
@@ -119,7 +119,7 @@ async def use_refresh_token_form(usuario: Usuarios = Depends(verificar_token_oau
     access_token = criar_token(usuario.id_usuario)
     return {
             "access_token":access_token,
-            "token_type":"Bearer" 
+            "token_type":"Bearer"
         }
 
 @auth_router.get("/refresh")
@@ -129,7 +129,7 @@ async def use_refresh_token(refresh_token: str, db: Session = Depends(pegar_sess
 
     return {
             "access_token":access_token,
-            "token_type":"Bearer" 
+            "token_type":"Bearer"
         }
 
 @auth_router.post("/resetpassword/email")
@@ -140,7 +140,7 @@ async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Dep
 
     if not usuario:
         raise HTTPException(status_code=400, detail="Use o email cadastrado no site!")
-    
+
     codigo = f"{secrets.randbelow(1000000):06}"
 
     mensagem = MessageSchema(
@@ -192,12 +192,12 @@ async def validar_codigo_resetar_senha(codigo_schema: RecuperarSenhaCodigo, db: 
         raise HTTPException(status_code=400, detail="Código inválido. Verifique se o código está correto e se o tempo não expirou!")
     elif not bcrypt_context.verify(codigo,recuperacao.codigo):
         raise HTTPException(status_code=400, detail="Código inválido. Verifique se o código está correto e se o tempo não expirou!")
-    
+
     recuperacao.usado = True
 
     stmt = select(Usuarios).where(Usuarios.login == email)
     usuario = db.scalar(stmt)
-    
+
     dic_inf = {
         "sub":str(usuario.id_usuario)
         ,"exp":datetime.utcnow() + timedelta(minutes=2)
@@ -226,4 +226,3 @@ async def mudar_senha(senha_schema: RecuperarSenhaNovaSenha,token_validation: st
             "mensagem":"Senha alterada com sucesso!"
         }
     )
-

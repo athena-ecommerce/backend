@@ -41,10 +41,10 @@ class UsuarioLogin(BaseModel):
     senha: str
 
     model_config = ConfigDict(
-        from_attributes=True,      
-        extra="forbid",            
-        validate_assignment=True,  
-        str_strip_whitespace=True, 
+        from_attributes=True,
+        extra="forbid",
+        validate_assignment=True,
+        str_strip_whitespace=True,
         frozen=True,
     )
 
@@ -55,10 +55,10 @@ class UsuarioLoginResposta(BaseModel):
     refresh_token: str
 
     model_config = ConfigDict(
-        from_attributes=True,      
-        extra="forbid",            
-        validate_assignment=True,  
-        str_strip_whitespace=True, 
+        from_attributes=True,
+        extra="forbid",
+        validate_assignment=True,
+        str_strip_whitespace=True,
         frozen=True,
     )
 
@@ -67,10 +67,10 @@ class RecuperarSenha(BaseModel):
     email: str
 
     model_config = ConfigDict(
-        from_attributes=True,      
-        extra="forbid",            
-        validate_assignment=True,  
-        str_strip_whitespace=True, 
+        from_attributes=True,
+        extra="forbid",
+        validate_assignment=True,
+        str_strip_whitespace=True,
         frozen=True,
     )
 
@@ -80,10 +80,10 @@ class RecuperarSenhaCodigo(BaseModel):
     codigo: str
 
     model_config = ConfigDict(
-        from_attributes=True,      
-        extra="forbid",            
-        validate_assignment=True,  
-        str_strip_whitespace=True, 
+        from_attributes=True,
+        extra="forbid",
+        validate_assignment=True,
+        str_strip_whitespace=True,
         frozen=True,
     )
 
@@ -92,9 +92,9 @@ class RecuperarSenhaNovaSenha(BaseModel):
     senha: str
 
     model_config = ConfigDict(
-        from_attributes=True,      
-        extra="forbid",            
-        validate_assignment=True,  
-        str_strip_whitespace=True, 
+        from_attributes=True,
+        extra="forbid",
+        validate_assignment=True,
+        str_strip_whitespace=True,
         frozen=True,
     )
