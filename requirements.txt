@@ -10,3 +10,4 @@ psycopg2-binary==2.9.12
 python-multipart==0.0.32
 fastapi-mail==1.6.5
 email-validator==2.3.0
+redis==8.0.1

@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from DEPENDENCIES import pegar_sessao, verificar_token
+from DEPENDENCIES import pegar_sessao, verificar_token_oauth
 from MODELS import Produtos, Usuarios
 from SCHEMAS import ArteAtualizar, ArteCadastro, ArteResposta
 
@@ -32,15 +32,44 @@ def validar_dono_da_arte(arte: Produtos, usuario: Usuarios):
 
 
 @arts_router.get("/", response_model=List[ArteResposta])
-async def listar_artes(db: Session = Depends(pegar_sessao)):
+async def listar_artes(
+    db: Session = Depends(pegar_sessao),
+    tipo_arte: Optional[str] = Query(None, description="Filtra pela categoria/tipo da arte"),
+    nome: Optional[str] = Query(None, description="Busca pelo nome da arte"),
+    preco_min: Optional[float] = Query(None, ge=0, description="Preço mínimo"),
+    preco_max: Optional[float] = Query(None, ge=0, description="Preço máximo"),
+    ordenar_por: Optional[str] = Query(
+        None, description="Valores aceitos: nome, preco-menor, preco-maior"
+    ),
+):
     stmt = select(Produtos)
+
+    if tipo_arte:
+        stmt = stmt.where(Produtos.tipo_arte == tipo_arte)
+
+    if nome:
+        stmt = stmt.where(Produtos.nome.ilike(f"%{nome}%"))
+
+    if preco_min is not None:
+        stmt = stmt.where(Produtos.preco >= preco_min)
+
+    if preco_max is not None:
+        stmt = stmt.where(Produtos.preco <= preco_max)
+
+    if ordenar_por == "preco-menor":
+        stmt = stmt.order_by(Produtos.preco.asc())
+    elif ordenar_por == "preco-maior":
+        stmt = stmt.order_by(Produtos.preco.desc())
+    elif ordenar_por == "nome":
+        stmt = stmt.order_by(Produtos.nome.asc())
+
     artes = db.scalars(stmt).all()
     return artes
 
 
 @arts_router.get("/artist/me/", response_model=List[ArteResposta])
 async def listar_minhas_artes(
-    usuario: Usuarios = Depends(verificar_token),
+    usuario: Usuarios = Depends(verificar_token_oauth),
     db: Session = Depends(pegar_sessao),
 ):
     stmt = select(Produtos).where(Produtos.id_usuario == usuario.id_usuario)
@@ -63,7 +92,7 @@ async def buscar_arte(id_produto: int, db: Session = Depends(pegar_sessao)):
 @arts_router.post("/", response_model=ArteResposta, status_code=status.HTTP_201_CREATED)
 async def cadastrar_arte(
     arte_schema: ArteCadastro,
-    usuario: Usuarios = Depends(verificar_token),
+    usuario: Usuarios = Depends(verificar_token_oauth),
     db: Session = Depends(pegar_sessao),
 ):
     if usuario.tipo_acesso != "ARTISTA":
@@ -89,7 +118,7 @@ async def cadastrar_arte(
 async def editar_arte(
     id_produto: int,
     arte_schema: ArteAtualizar,
-    usuario: Usuarios = Depends(verificar_token),
+    usuario: Usuarios = Depends(verificar_token_oauth),
     db: Session = Depends(pegar_sessao),
 ):
     arte = buscar_arte_http(id_produto, db)
@@ -107,7 +136,7 @@ async def editar_arte(
 @arts_router.delete("/{id_produto}", status_code=status.HTTP_204_NO_CONTENT)
 async def deletar_arte(
     id_produto: int,
-    usuario: Usuarios = Depends(verificar_token),
+    usuario: Usuarios = Depends(verificar_token_oauth),
     db: Session = Depends(pegar_sessao),
 ):
     arte = buscar_arte_http(id_produto, db)
