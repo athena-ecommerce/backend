@@ -10,7 +10,6 @@ redis_cliente = redis.Redis(
     port=REDIS_PORT,
     password=REDIS_PASSWORD,
     db=REDIS_DB,
-    decode_responses=True,
 )
 
 

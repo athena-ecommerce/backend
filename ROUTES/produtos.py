@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from DEPENDENCIES import pegar_sessao, verificar_token_oauth
+from DEPENDENCIES import pegar_sessao, verificar_token
 from MODELS import Produtos, Usuarios
 from SCHEMAS import ArteAtualizar, ArteCadastro, ArteResposta
 
@@ -67,9 +67,9 @@ async def listar_artes(
     return artes
 
 
-@arts_router.get("/artist/me/", response_model=List[ArteResposta])
+@arts_router.get("/artist/me", response_model=List[ArteResposta])
 async def listar_minhas_artes(
-    usuario: Usuarios = Depends(verificar_token_oauth),
+    usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
 ):
     stmt = select(Produtos).where(Produtos.id_usuario == usuario.id_usuario)
@@ -92,7 +92,7 @@ async def buscar_arte(id_produto: int, db: Session = Depends(pegar_sessao)):
 @arts_router.post("/", response_model=ArteResposta, status_code=status.HTTP_201_CREATED)
 async def cadastrar_arte(
     arte_schema: ArteCadastro,
-    usuario: Usuarios = Depends(verificar_token_oauth),
+    usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
 ):
     if usuario.tipo_acesso != "ARTISTA":
@@ -118,7 +118,7 @@ async def cadastrar_arte(
 async def editar_arte(
     id_produto: int,
     arte_schema: ArteAtualizar,
-    usuario: Usuarios = Depends(verificar_token_oauth),
+    usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
 ):
     arte = buscar_arte_http(id_produto, db)
@@ -136,7 +136,7 @@ async def editar_arte(
 @arts_router.delete("/{id_produto}", status_code=status.HTTP_204_NO_CONTENT)
 async def deletar_arte(
     id_produto: int,
-    usuario: Usuarios = Depends(verificar_token_oauth),
+    usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
 ):
     arte = buscar_arte_http(id_produto, db)

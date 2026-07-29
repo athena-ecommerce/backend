@@ -2,7 +2,7 @@ import redis
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from DEPENDENCIES import pegar_sessao, verificar_token_oauth, pegar_redis
+from DEPENDENCIES import pegar_sessao, verificar_token, pegar_redis
 from MODELS import Produtos, Usuarios
 from SCHEMAS import CarrinhoResposta, ItemCarrinhoAdicionar, ItemCarrinhoResposta
 
@@ -56,7 +56,7 @@ def montar_resposta_carrinho(
 
 @cart_router.get("/", response_model=CarrinhoResposta)
 async def ver_carrinho(
-    usuario: Usuarios = Depends(verificar_token_oauth),
+    usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
     redis_cliente: redis.Redis = Depends(pegar_redis),
 ):
@@ -66,7 +66,7 @@ async def ver_carrinho(
 @cart_router.post("/items", response_model=CarrinhoResposta, status_code=status.HTTP_201_CREATED)
 async def adicionar_item(
     item: ItemCarrinhoAdicionar,
-    usuario: Usuarios = Depends(verificar_token_oauth),
+    usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
     redis_cliente: redis.Redis = Depends(pegar_redis),
 ):
@@ -92,7 +92,7 @@ async def adicionar_item(
 @cart_router.delete("/items/{art_id}", response_model=CarrinhoResposta)
 async def remover_item(
     art_id: int,
-    usuario: Usuarios = Depends(verificar_token_oauth),
+    usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
     redis_cliente: redis.Redis = Depends(pegar_redis),
 ):
@@ -104,7 +104,7 @@ async def remover_item(
 
 @cart_router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
 async def limpar_carrinho(
-    usuario: Usuarios = Depends(verificar_token_oauth),
+    usuario: Usuarios = Depends(verificar_token),
     redis_cliente: redis.Redis = Depends(pegar_redis),
 ):
     chave = chave_carrinho(usuario.id_usuario)

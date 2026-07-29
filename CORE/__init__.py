@@ -1,5 +1,6 @@
 from .seguranca import bcrypt_context, oauth2_schema
 from .variaveis import (
+    DATABASE_URL,
     SECRET_KEY,
     ALGORITHM,
     ACCESS_TOKEN_EXPIRE_MINUTES,
