@@ -1,7 +1,8 @@
 from sqlalchemy import String, Integer, Boolean, Float, ForeignKey, DateTime, CHAR, CheckConstraint, Index
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC
 from MODELS import Base
+from MODELS.usuarios import Usuarios
 
 class Enderecos(Base):
 
@@ -30,6 +31,11 @@ class Enderecos(Base):
             ,name="fk_enderecos_usuarios"
             ,ondelete="CASCADE"
         )
+    )
+
+    usuario: Mapped["Usuarios"] = relationship(
+        "Usuarios"
+        ,back_populates="enderecos"
     )
 
     __table_args__ = (

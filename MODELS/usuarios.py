@@ -1,7 +1,8 @@
 from sqlalchemy import String, Integer, Boolean, Float, ForeignKey, DateTime, Date, CHAR, CheckConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC, date
 from MODELS import Base
+from MODELS.enderecos import Enderecos
 
 class Usuarios(Base):
 
@@ -28,6 +29,12 @@ class Usuarios(Base):
     tipo_acesso: Mapped[str] = mapped_column(
         String(20)
         ,default="CLIENTE"
+    )
+
+    enderecos: Mapped[list["Enderecos"]] = relationship(
+        "Enderecos",
+        back_populates="usuario",
+        cascade="all, delete-orphan"
     )
 
     __table_args__ = (
