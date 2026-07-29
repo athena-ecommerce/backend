@@ -1,5 +1,5 @@
 from sqlalchemy import String, Integer, Boolean, Float, ForeignKey, DateTime, CheckConstraint, Index
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC
 from MODELS import Base
 
@@ -24,6 +24,13 @@ class Pedidos_Produtos(Base):
         )
         ,primary_key=True
     )
+
+    pedido = relationship(
+        "Pedidos"
+        ,back_populates="produtos"
+    )
+
+    produto = relationship("Produtos")
 
     __table_args__ = (
         Index(
