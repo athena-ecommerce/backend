@@ -2,6 +2,7 @@ from .auth_schema import UsuarioCadastro, UsuarioCadastroResposta, UsuarioLogin,
 from .produtos_schema import ArteCadastro, ArteAtualizar, ArteResposta
 from .purchase_schema import PedidoCompleto, PedidoCompletoResposta
 from .address_schema import EnderecoCompleto
+from .carrinho_schema import ItemCarrinhoAdicionar, ItemCarrinhoResposta, CarrinhoResposta
 
 __all__ = [
     UsuarioCadastro,
@@ -16,5 +17,9 @@ __all__ = [
     ArteResposta,
     EnderecoCompleto,
     PedidoCompleto,
-    PedidoCompletoResposta
+    PedidoCompletoResposta,
+    ArteResposta,
+    ItemCarrinhoAdicionar,
+    ItemCarrinhoResposta,
+    CarrinhoResposta
 ]

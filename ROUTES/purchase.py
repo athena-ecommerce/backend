@@ -7,7 +7,7 @@ from DEPENDENCIES import pegar_sessao, verificar_token
 
 purchase_route = APIRouter(prefix="/purchase",tags=["Compras"])
 
-def adicionar_pedido(pedido_schema:PedidoCompleto, id_usuario: int, db: Session):
+def adicionar_pedido(pedido_schema: PedidoCompleto, id_usuario: int, db: Session):
     pedido: Pedidos = Pedidos(
         valor_total=pedido_schema.valor_total
         ,id_usuario=id_usuario

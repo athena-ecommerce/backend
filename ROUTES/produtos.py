@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -32,13 +32,42 @@ def validar_dono_da_arte(arte: Produtos, usuario: Usuarios):
 
 
 @arts_router.get("/", response_model=List[ArteResposta])
-async def listar_artes(db: Session = Depends(pegar_sessao)):
+async def listar_artes(
+    db: Session = Depends(pegar_sessao),
+    tipo_arte: Optional[str] = Query(None, description="Filtra pela categoria/tipo da arte"),
+    nome: Optional[str] = Query(None, description="Busca pelo nome da arte"),
+    preco_min: Optional[float] = Query(None, ge=0, description="Preço mínimo"),
+    preco_max: Optional[float] = Query(None, ge=0, description="Preço máximo"),
+    ordenar_por: Optional[str] = Query(
+        None, description="Valores aceitos: nome, preco-menor, preco-maior"
+    ),
+):
     stmt = select(Produtos)
+
+    if tipo_arte:
+        stmt = stmt.where(Produtos.tipo_arte == tipo_arte)
+
+    if nome:
+        stmt = stmt.where(Produtos.nome.ilike(f"%{nome}%"))
+
+    if preco_min is not None:
+        stmt = stmt.where(Produtos.preco >= preco_min)
+
+    if preco_max is not None:
+        stmt = stmt.where(Produtos.preco <= preco_max)
+
+    if ordenar_por == "preco-menor":
+        stmt = stmt.order_by(Produtos.preco.asc())
+    elif ordenar_por == "preco-maior":
+        stmt = stmt.order_by(Produtos.preco.desc())
+    elif ordenar_por == "nome":
+        stmt = stmt.order_by(Produtos.nome.asc())
+
     artes = db.scalars(stmt).all()
     return artes
 
 
-@arts_router.get("/artist/me/", response_model=List[ArteResposta])
+@arts_router.get("/artist/me", response_model=List[ArteResposta])
 async def listar_minhas_artes(
     usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
