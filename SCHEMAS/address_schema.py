@@ -8,7 +8,7 @@ class EnderecoCompleto(BaseModel):
     bairro: str
     estado: str
     numero: str
-    complemento: str
+    complemento: Optional[str] = None
     cep: str
 
     model_config = ConfigDict(
@@ -19,3 +19,21 @@ class EnderecoCompleto(BaseModel):
             frozen=True,
         )
 
+
+class EnderecoResponse(BaseModel):
+    id_endereco: int
+    rua: str
+    bairro: str
+    estado: str
+    numero: str
+    complemento: Optional[str]
+    cep: str
+
+
+class EnderecoCepResponse(BaseModel):
+    rua: str
+    bairro: str
+    estado: str
+    numero: str
+    complemento: Optional[str]
+    cep: str
