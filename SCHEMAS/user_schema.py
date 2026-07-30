@@ -3,7 +3,6 @@ from datetime import date
 from SCHEMAS.address_schema import EnderecoCompleto
 
 class UserResponse(BaseModel):
-    
     id_usuario: int
     nome_completo: str
     login: str

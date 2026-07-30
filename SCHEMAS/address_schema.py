@@ -28,4 +28,12 @@ class EnderecoResponse(BaseModel):
     numero: str
     complemento: Optional[str]
     cep: str
-    id_usuario: int
+
+
+class EnderecoCepResponse(BaseModel):
+    rua: str
+    bairro: str
+    estado: str
+    numero: str
+    complemento: Optional[str]
+    cep: str
