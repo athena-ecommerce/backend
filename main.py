@@ -1,8 +1,9 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-from ROUTES import auth_router, arts_router, purchase_route, cart_router
+from ROUTES import auth_router, arts_router, purchase_route, cart_router, user_router
 
 app.include_router(auth_router)
 app.include_router(arts_router)
