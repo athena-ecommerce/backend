@@ -61,7 +61,7 @@ async def buscar_endereco_cep(cep: str):
     if dados_endereco.get("erro"):
         raise HTTPException(status_code=404, detail="Endereço não encontrado")
     
-    endereco = Enderecos(
+    endereco = EnderecoCepResponse(
         rua=dados_endereco.get("logradouro"),
         bairro=dados_endereco.get("bairro"),
         estado=dados_endereco.get("uf"),

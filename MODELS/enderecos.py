@@ -2,7 +2,10 @@ from sqlalchemy import String, Integer, Boolean, Float, ForeignKey, DateTime, CH
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC
 from MODELS import Base
-from MODELS.usuarios import Usuarios
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from MODELS.usuarios import Usuarios
 
 class Enderecos(Base):
 
