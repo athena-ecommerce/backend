@@ -8,6 +8,7 @@ app.include_router(auth_router)
 app.include_router(arts_router)
 app.include_router(purchase_route)
 app.include_router(cart_router)
+app.include_router(user_router)
 
 origins = [
     "http://localhost:80",

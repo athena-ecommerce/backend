@@ -34,6 +34,6 @@ class EnderecoCepResponse(BaseModel):
     rua: str
     bairro: str
     estado: str
-    numero: str
-    complemento: Optional[str]
+    numero: Optional[str] = None
+    complemento: Optional[str] = None
     cep: str
