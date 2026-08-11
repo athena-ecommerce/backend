@@ -8,6 +8,7 @@ from .telefones import Telefones
 from .usuarios import Usuarios
 from .usuarios_competencias import Usuarios_Competencias
 from .recuperacoes_senhas import Recuperacoes_Senhas
+from .imagens_quadros import Imagens_Quadros
 
 __all__ = [
     Base
@@ -20,4 +21,5 @@ __all__ = [
     ,Usuarios
     ,Usuarios_Competencias
     ,Recuperacoes_Senhas
+    ,Imagens_Quadros
 ]
