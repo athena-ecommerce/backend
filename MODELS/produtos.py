@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Boolean, NUMERIC, ForeignKey, DateTime, CheckConstraint, Index
+from sqlalchemy import String, Integer, Boolean, NUMERIC, ForeignKey, DateTime, CheckConstraint, Index, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime, UTC
 from MODELS import Base
