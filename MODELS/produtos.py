@@ -15,6 +15,8 @@ class Produtos(Base):
 
     preco: Mapped[float] = mapped_column(NUMERIC(10,2))
 
+    descricao: Mapped[str] = mapped_column(Text)
+
     id_usuario: Mapped[int] = mapped_column(
         ForeignKey(
             "usuarios.id_usuario"

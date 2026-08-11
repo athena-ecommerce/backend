@@ -14,6 +14,10 @@ class Imagens_Quadros(Base):
 
     imagem_public_id: Mapped[str] = mapped_column(String(100))
 
+    descricao_foto: Mapped[str] = mapped_column(Text)
+
+    dimensoes: Mapped[str] = mapped_column(String(100))
+
     id_produto: Mapped[int] = mapped_column(
         ForeignKey(
             "produtos.id_produto"
