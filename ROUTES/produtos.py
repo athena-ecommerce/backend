@@ -213,10 +213,7 @@ async def buscar_arte(id_produto: int, db: Session = Depends(pegar_sessao)):
 
 @arts_router.post("/", response_model=ArteResposta, status_code=status.HTTP_201_CREATED)
 async def cadastrar_arte(
-    arte_schema: Annotated[
-        ArteCadastro,
-        Depends(ArteCadastro.as_form),
-    ],
+    arte_schema: ArteCadastro = Depends(ArteCadastro.as_form),
     usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
 ):
@@ -236,30 +233,31 @@ async def cadastrar_arte(
 
         # 2. Tudo relacionado ao banco fica dentro
         #    de uma única transação
-        with db.begin():
 
-            nova_arte = Produtos(
-                nome=arte_schema.nome,
-                tipo_arte=arte_schema.tipo_arte,
-                preco=arte_schema.preco,
-                id_usuario=usuario.id_usuario,
-            )
+        nova_arte = Produtos(
+            nome=arte_schema.nome,
+            tipo_arte=arte_schema.tipo_arte,
+            preco=arte_schema.preco,
+            id_usuario=usuario.id_usuario,
+        )
 
-            db.add(nova_arte)
+        db.add(nova_arte)
 
-            # flush envia o INSERT para o banco sem
-            # finalizar a transação.
-            db.flush()
+        # flush envia o INSERT para o banco sem
+        # finalizar a transação.
+        db.flush()
 
-            nova_imagem_arte = Imagens_Quadros(
-                id_produto=nova_arte.id_produto,
-                imagem=url_imagem,
-                imagem_public_id=public_id,
-            )
+        nova_imagem_arte = Imagens_Quadros(
+            id_produto=nova_arte.id_produto,
+            imagem=url_imagem,
+            imagem_public_id=public_id,
+        )
 
-            db.add(nova_imagem_arte)
+        db.add(nova_imagem_arte)
 
-            db.flush()
+        db.flush()
+
+        db.commit()
 
         # Aqui o COMMIT já aconteceu.
         db.refresh(nova_arte)
@@ -288,6 +286,7 @@ async def cadastrar_arte(
                     cloudinary_error,
                 )
 
+        print("ERRO AO CADASTRAR ARTE:", repr(e))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Não foi possível cadastrar a arte.",
@@ -297,10 +296,8 @@ async def cadastrar_arte(
 @arts_router.put("/{id_produto}", response_model=ArteResposta)
 async def editar_arte(
     id_produto: int,
-    arte_schema: Annotated[
-        ArteCadastro,
+    arte_schema: ArteCadastro = 
         Depends(ArteCadastro.as_form),
-    ],
     usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
 ):
@@ -340,12 +337,10 @@ async def deletar_arte(
 
         # -----------------------------------
         # TRANSAÇÃO DO BANCO
-        # -----------------------------------
+        # -----------------------------------   
 
-        with db.begin():
-
-            db.delete(imagem_arte)
-            db.delete(arte)
+        db.delete(imagem_arte)
+        db.delete(arte)
 
         # Se chegamos aqui, o COMMIT aconteceu.
         # O banco agora está consistente.

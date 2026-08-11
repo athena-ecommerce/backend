@@ -61,6 +61,7 @@ class ImagensQuadrosResposta(BaseModel):
 
     id_imagem_quadro: int
     imagem: str
+    imagem_public_id: str
 
     model_config = ConfigDict(
         from_attributes=True,
