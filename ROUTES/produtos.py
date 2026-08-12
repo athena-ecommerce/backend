@@ -24,6 +24,7 @@ cloudinary.config(
 )
 
 def buscar_arte_http(id_produto: int, db: Session) -> Produtos:
+    # Centraliza a resposta 404 para que todas as rotas tratem produto inexistente igual.
     arte = db.get(Produtos, id_produto)
 
     if not arte:
@@ -46,6 +47,7 @@ def buscar_imagem_arte_http(id_produto: int, db: Session) -> Imagens_Quadros:
     return imagem
 
 def validar_dono_da_arte(arte: Produtos, usuario: Usuarios):
+    # Editar ou remover uma obra exige que ela pertença ao artista logado.
     if arte.id_usuario != usuario.id_usuario:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -53,6 +55,7 @@ def validar_dono_da_arte(arte: Produtos, usuario: Usuarios):
         )
 
 def cadastrar_imagem(imagem: UploadFile):
+    # O arquivo fica no Cloudinary; o banco recebe somente a URL e o identificador remoto.
     resultado = cloudinary.uploader.upload(
         imagem.file,
         resource_type="image"

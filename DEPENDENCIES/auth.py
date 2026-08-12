@@ -6,6 +6,7 @@ from jose import jwt, JWTError
 from CORE import SECRET_KEY, ALGORITHM, oauth2_schema
 from DEPENDENCIES import pegar_sessao
 
+# Valida o token no formato usado pelo Swagger/OAuth2 e devolve o usuário autenticado.
 def verificar_token_oauth(token: str = Depends(oauth2_schema), db:Session = Depends(pegar_sessao)):
     try:
         dic_info = jwt.decode(token,SECRET_KEY,ALGORITHM)
@@ -20,6 +21,7 @@ def verificar_token_oauth(token: str = Depends(oauth2_schema), db:Session = Depe
         raise HTTPException(status_code=401, detail="Acesso Inválido!")
     return usuario
 
+# A mesma validação atende as requisições comuns que enviam o Bearer token no header.
 def verificar_token(token: str, db: Session = Depends(pegar_sessao)):
     try:
         dic_info = jwt.decode(token,SECRET_KEY,ALGORITHM)

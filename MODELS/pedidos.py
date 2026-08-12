@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from MODELS.enderecos import Enderecos
 
 
+# O pedido registra o comprador, o endereço escolhido e o valor fechado da compra.
 class Pedidos(Base):
 
     __tablename__ = "pedidos"
