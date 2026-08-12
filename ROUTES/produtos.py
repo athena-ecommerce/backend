@@ -147,6 +147,7 @@ async def listar_artes(
             "tipo_arte": produto.tipo_arte,
             "preco": produto.preco,
             "id_usuario": produto.id_usuario,
+            "descricao": produto.descricao,
             "imagem": imagem,
         }
         for produto, imagem in artes
@@ -174,6 +175,7 @@ async def listar_minhas_artes(
             "tipo_arte": produto.tipo_arte,
             "preco": produto.preco,
             "id_usuario": produto.id_usuario,
+            "descricao": produto.descricao,
             "imagem": imagem,
         }
         for produto, imagem in artes
@@ -198,6 +200,7 @@ async def listar_artes_do_artista(id_usuario: int, db: Session = Depends(pegar_s
             "tipo_arte": produto.tipo_arte,
             "preco": produto.preco,
             "id_usuario": produto.id_usuario,
+            "descricao": produto.descricao,
             "imagem": imagem,
         }
         for produto, imagem in artes
@@ -238,6 +241,7 @@ async def cadastrar_arte(
             nome=arte_schema.nome,
             tipo_arte=arte_schema.tipo_arte,
             preco=arte_schema.preco,
+            descricao=arte_schema.descricao,
             id_usuario=usuario.id_usuario,
         )
 
@@ -251,6 +255,8 @@ async def cadastrar_arte(
             id_produto=nova_arte.id_produto,
             imagem=url_imagem,
             imagem_public_id=public_id,
+            descricao_foto=arte_schema.descricao_foto,
+            dimensoes=arte_schema.dimensoes
         )
 
         db.add(nova_imagem_arte)
@@ -269,6 +275,7 @@ async def cadastrar_arte(
             "tipo_arte": nova_arte.tipo_arte,
             "preco": nova_arte.preco,
             "id_usuario": nova_arte.id_usuario,
+            "descricao": nova_arte.descricao,
             "imagem": nova_imagem_arte,
         }
 
@@ -296,8 +303,8 @@ async def cadastrar_arte(
 @arts_router.put("/{id_produto}", response_model=ArteResposta)
 async def editar_arte(
     id_produto: int,
-    arte_schema: ArteCadastro = 
-        Depends(ArteCadastro.as_form),
+    arte_schema: ArteAtualizar = 
+        Depends(ArteAtualizar.as_form),
     usuario: Usuarios = Depends(verificar_token),
     db: Session = Depends(pegar_sessao),
 ):
@@ -307,12 +314,15 @@ async def editar_arte(
     arte.nome = arte_schema.nome
     arte.tipo_arte = arte_schema.tipo_arte
     arte.preco = arte_schema.preco
+    arte.descricao = arte_schema.descricao
 
     imagem_arte = buscar_imagem_arte_http(id_produto, db)
 
     nova_imagem, public_id = atualizar_imagem(arte_schema.imagem,imagem_arte.imagem_public_id)
     imagem_arte.imagem = nova_imagem
     imagem_arte.imagem_public_id = public_id
+    imagem_arte.descricao_foto = arte_schema.descricao_foto
+    imagem_arte.dimensoes = arte_schema.dimensoes
 
     db.commit()
     db.refresh(arte)
@@ -341,6 +351,8 @@ async def deletar_arte(
 
         db.delete(imagem_arte)
         db.delete(arte)
+
+        db.commit() 
 
         # Se chegamos aqui, o COMMIT aconteceu.
         # O banco agora está consistente.
