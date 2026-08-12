@@ -2,27 +2,13 @@ from sqlalchemy import String, Integer, Boolean, NUMERIC, ForeignKey, DateTime, 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC
 from MODELS import Base
+from MODELS.usuarios import Usuarios
 
 class Pedidos(Base):
 
     __tablename__ = "pedidos"
 
     id_pedido: Mapped[int] = mapped_column(primary_key=True)
-
-    valor_total: Mapped[float] = mapped_column(
-        NUMERIC(10,2)
-        ,default=0.0
-    )
-
-    data_pedido: Mapped[datetime] = mapped_column(
-        TIMESTAMP()
-        ,server_default=func.current_timestamp()
-    )
-
-    status: Mapped[str] = mapped_column(
-        String(30)
-        ,default="PENDENTE"
-    )
 
     id_usuario: Mapped[int] = mapped_column(
         ForeignKey(
@@ -40,9 +26,44 @@ class Pedidos(Base):
         )
     )
 
+
+    valor_total: Mapped[float] = mapped_column(
+        NUMERIC(10,2)
+        ,default=0.0
+    )
+
+    data_pedido: Mapped[datetime] = mapped_column(
+        TIMESTAMP()
+        ,server_default=func.current_timestamp()
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(30)
+        ,default="PENDENTE"
+    )
+
+    tipo_pagamento: Mapped[str] = mapped_column(
+        String(30)
+    )
+
+    numero_parcela: Mapped[int] = mapped_column(
+        Integer
+        ,default=1
+    )
+
+    usuario: Mapped["Usuarios"] = relationship(
+        "Usuarios"
+        ,back_populates="pedidos"
+    )
+
     produtos = relationship(
         "Pedidos_Produtos"
-        ,back_populates="pedido"
+        ,back_populates="pedidos"
+    )
+
+    pagamentos = relationship(
+        "Pagamentos"
+        ,back_populates="pedidos"
     )
 
     __table_args__ = (

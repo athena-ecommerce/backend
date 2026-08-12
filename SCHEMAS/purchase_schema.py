@@ -1,16 +1,14 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import date
-from MODELS import Produtos
-from SCHEMAS.address_schema import EnderecoCompleto
-from SCHEMAS.produtos_schema import ArteCadastro
 
-class PedidoCompleto(BaseModel):
-
-    valor_total: float
-    id_endereco: int
-    ids_produto: list[int]
-
+class PagamentoSchema(BaseModel):
+    id_pedido: int
+    id_cartao: Optional[int]
+    chave_pix: Optional[str]
+    valor: float
+    numero_parcelas: int
+    
     model_config = ConfigDict(
         from_attributes=True,      
         extra="forbid",            
@@ -19,13 +17,15 @@ class PedidoCompleto(BaseModel):
         frozen=True,
     )
 
-class PedidoCompletoResposta(BaseModel):
 
-    valor_total: float
-    data_pedido: date
-    status: str
-    endereco: EnderecoCompleto
-    produtos: list[ArteCadastro]
+class PagamentoResponse(BaseModel):
+    id_pagamento: int
+    id_pedido: int
+    id_cartao: Optional[int]
+    chave_pix: Optional[str]
+    valor: float
+    numero_parcela: int
+    data_pagamento: date
 
     model_config = ConfigDict(
         from_attributes=True,      
@@ -34,4 +34,3 @@ class PedidoCompletoResposta(BaseModel):
         str_strip_whitespace=True, 
         frozen=True,
     )
-

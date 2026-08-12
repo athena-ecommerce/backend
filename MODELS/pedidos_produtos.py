@@ -25,12 +25,20 @@ class Pedidos_Produtos(Base):
         ,primary_key=True
     )
 
-    pedido = relationship(
-        "Pedidos"
-        ,back_populates="produtos"
+    quantidade: Mapped[int] = mapped_column(
+        Integer
+        ,default=1
     )
 
-    produto = relationship("Produtos")
+    pedido = relationship(
+        "Pedidos"
+        ,back_populates="pedidos"
+    )
+
+    produto = relationship(
+        "Produtos"
+        ,back_populates="pedidos_produtos"
+    )
 
     __table_args__ = (
         Index(
