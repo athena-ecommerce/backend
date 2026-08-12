@@ -3,7 +3,6 @@ from typing import Optional
 from datetime import date
 
 class EnderecoCompleto(BaseModel):
-
     rua: str
     bairro: str
     estado: str
@@ -26,7 +25,7 @@ class EnderecoResponse(BaseModel):
     bairro: str
     estado: str
     numero: str
-    complemento: Optional[str]
+    complemento: Optional[str] = None
     cep: str
 
 
