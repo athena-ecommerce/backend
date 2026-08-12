@@ -27,6 +27,7 @@ conf = ConnectionConfig(
 
 auth_router = APIRouter(prefix="/auth",tags=["Autenticação"])
 
+# Evita criar duas contas com o mesmo login antes de gravar o novo usuário.
 def usuario_existe(usuario: Usuarios, db: Session):
     usuario = db.scalar(select(Usuarios).where(Usuarios.login == usuario.login))
     if usuario:
@@ -34,6 +35,7 @@ def usuario_existe(usuario: Usuarios, db: Session):
     else:
         return False
 
+# A senha só chega ao banco depois de passar pelo hash; o texto original não é persistido.
 def cadastrar_usuario(usuario: Usuarios, db: Session):
     senha_criptografada = bcrypt_context.hash(usuario.senha)
     usuario.senha = senha_criptografada
@@ -43,6 +45,7 @@ def cadastrar_usuario(usuario: Usuarios, db: Session):
     db.refresh(usuario)
     return usuario
 
+# Busca a conta e compara a senha informada com o hash armazenado.
 def validar_login(login:str, senha:str, db:Session):
     stmt = select(Usuarios).where(Usuarios.login == login)
     usuario = db.scalar(stmt)
@@ -54,6 +57,7 @@ def validar_login(login:str, senha:str, db:Session):
 
     return usuario
 
+# Access e refresh usam o mesmo formato, mas têm duração e finalidade diferentes.
 def criar_token(id_usuario: str, duracao_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),tipo="access"):
     data_expiracao = datetime.now(timezone.utc) + duracao_token
     dic_inf = {
@@ -71,6 +75,7 @@ def criar_token(id_usuario: str, duracao_token=timedelta(minutes=ACCESS_TOKEN_EX
 
 @auth_router.post("/signup", response_model=UsuarioCadastroResposta)
 async def cadastrar(usuario_schema: UsuarioCadastro, db: Session = Depends(pegar_sessao)):
+    # A rota transforma o schema recebido em modelo e delega a persistência ao helper.
     novo_usuario = Usuarios(
         nome_completo=usuario_schema.nome_completo, 
         login=usuario_schema.login, 
@@ -86,6 +91,7 @@ async def cadastrar(usuario_schema: UsuarioCadastro, db: Session = Depends(pegar
 
 @auth_router.post("/login", response_model=UsuarioLoginResposta)
 async def login(login_schema: UsuarioLogin, db: Session = Depends(pegar_sessao)):
+    # Depois de autenticar, a sessão recebe um token curto e outro para renovação.
     usuario = validar_login(login_schema.login,login_schema.senha, db)
     if not usuario:
         raise HTTPException(status_code=400, detail="Usuário não encontrado!")
@@ -134,6 +140,7 @@ async def use_refresh_token(refresh_token: str, db: Session = Depends(pegar_sess
 
 @auth_router.post("/resetpassword/email")
 async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Depends(pegar_sessao)):
+    # O código enviado por e-mail é salvo apenas em formato criptografado e expira rapidamente.
     email = recuperar_senha_schema.email
     stmt = select(Usuarios).where(Usuarios.login == email)
     usuario = db.scalar(stmt)
@@ -180,6 +187,7 @@ async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Dep
 
 @auth_router.post("/resetpassword/validation")
 async def validar_codigo_resetar_senha(codigo_schema: RecuperarSenhaCodigo, db: Session = Depends(pegar_sessao)):
+    # Só um código ainda válido e não utilizado pode liberar a troca de senha.
     email = codigo_schema.email
     codigo = codigo_schema.codigo
     stmt = select(Recuperacoes_Senhas).where(

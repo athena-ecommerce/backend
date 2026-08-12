@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import date
 
+# Os schemas deixam explícito o contrato de entrada e saída da autenticação.
 class UsuarioCadastro(BaseModel):
 
     nome_completo: str

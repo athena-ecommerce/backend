@@ -14,12 +14,14 @@ purchase_router = APIRouter(prefix="/purchase",tags=["Compras"])
 # Pedidos
 @purchase_router.get("/",response_model=list[PedidoCompletoResposta])
 async def listar_pedidos(usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
+    # O histórico é filtrado pelo usuário autenticado para não expor pedidos de outras contas.
     pedidos = db.query(Pedidos).filter(Pedidos.id_usuario == usuario.id_usuario).all()
     return {"pedidos": pedidos}
 
 
 @purchase_router.post("/", response_model=PedidoResponse)
 async def criar_pedido(pedido_schema: PedidoCompleto, usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
+    # Primeiro criamos o pedido principal; depois ligamos a ele cada produto comprado.
     novo_pedido = Pedidos(
         id_usuario=usuario.id_usuario,
         id_endereco=pedido_schema.id_endereco,
@@ -107,6 +109,7 @@ async def criar_chave_pix():
 
 @purchase_router.post("/payment", response_model=PagamentoResponse)
 async def realizar_pagamento(pagamento_schema: PagamentoSchema, usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
+    # O pagamento fica registrado na conta atual e é revertido se o banco rejeitar a operação.
     novo_pagamento = Pagamentos(
         id_usuario=usuario.id_usuario,
         id_cartao=pagamento_schema.id_cartao,

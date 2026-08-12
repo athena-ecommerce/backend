@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from MODELS.usuarios import Usuarios
 
+# Endereços ficam separados do usuário para permitir cadastro e seleção no checkout.
 class Enderecos(Base):
 
     __tablename__ = "enderecos"

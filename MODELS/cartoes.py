@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from MODELS.usuarios import Usuarios
 
 
+# Guarda os cartões vinculados ao usuário para facilitar pagamentos futuros.
 class Cartoes(Base):
     
     __tablename__ = "cartoes"

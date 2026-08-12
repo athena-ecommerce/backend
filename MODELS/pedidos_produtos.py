@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC
 from MODELS import Base
 
+# Tabela associativa que guarda quais produtos entraram em cada pedido e suas quantidades.
 class Pedidos_Produtos(Base):
 
     __tablename__ = "pedidos_produtos"

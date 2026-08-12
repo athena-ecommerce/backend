@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from MODELS.cartoes import Cartoes
     from MODELS.pedidos import Pedidos
 
+# Representa a conta e concentra os dados usados pela autenticação e pelo perfil.
 class Usuarios(Base):
 
     __tablename__ = "usuarios"

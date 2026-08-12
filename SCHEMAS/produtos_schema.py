@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 from fastapi import UploadFile, File, Form
 
+# O schema concentra as validações dos dados recebidos no cadastro de uma obra.
 class ArteCadastro(BaseModel):
 
     nome: str

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from MODELS.pedidos_produtos import Pedidos_Produtos
 
+# Cada obra pertence a um usuário e pode ser referenciada em pedidos e no carrinho.
 class Produtos(Base):
     
     __tablename__ = "produtos"

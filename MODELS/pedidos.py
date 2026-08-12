@@ -4,6 +4,7 @@ from datetime import datetime, UTC
 from MODELS import Base
 from MODELS.usuarios import Usuarios
 
+# O pedido registra o comprador, o endereço escolhido e o valor fechado da compra.
 class Pedidos(Base):
 
     __tablename__ = "pedidos"

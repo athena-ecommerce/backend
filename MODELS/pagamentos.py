@@ -5,6 +5,7 @@ from datetime import datetime, UTC
 from MODELS import Base
 
 
+# Registra a forma escolhida e os dados principais da transação realizada.
 class Pagamentos(Base):
     __tablename__ = "pagamentos"
 

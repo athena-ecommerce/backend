@@ -16,6 +16,7 @@ CARRINHO_TTL_SEGUNDOS = 60 * 60 * 24 * 7  # 7 dias sem mexer no carrinho, ele ex
 
 
 def chave_carrinho(id_usuario: int) -> str:
+    # O prefixo separa os carrinhos dos usuários dentro do espaço de chaves do Redis.
     return f"carrinho:{id_usuario}"
 
 
@@ -24,6 +25,7 @@ def montar_resposta_carrinho(
     db: Session,
     redis_cliente: redis.Redis,
 ) -> CarrinhoResposta:
+    # Redis guarda as quantidades; o banco completa os itens com nome e preço atuais.
     chave = chave_carrinho(usuario.id_usuario)
     itens_redis = redis_cliente.hgetall(chave)
 
@@ -60,6 +62,7 @@ async def ver_carrinho(
     db: Session = Depends(pegar_sessao),
     redis_cliente: redis.Redis = Depends(pegar_redis),
 ):
+    # A rota mantém a leitura do carrinho protegida pelo usuário autenticado.
     return montar_resposta_carrinho(usuario, db, redis_cliente)
 
 
@@ -70,6 +73,7 @@ async def adicionar_item(
     db: Session = Depends(pegar_sessao),
     redis_cliente: redis.Redis = Depends(pegar_redis),
 ):
+    # Adicionar o mesmo produto soma quantidade em vez de criar uma entrada duplicada.
     produto = db.get(Produtos, item.id_produto)
 
     if not produto:
