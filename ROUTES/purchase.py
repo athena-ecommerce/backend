@@ -5,20 +5,20 @@ from MODELS import Pedidos, Usuarios, Pedidos_Produtos, Cartoes, Pagamentos
 from DEPENDENCIES import pegar_sessao, verificar_token
 from SCHEMAS.card_schema import CartaoCadastro, CartaoResponse
 from SCHEMAS.pedido_produto_schema import PedidosProdutosSchema
-from SCHEMAS.pedido_schema import PedidoCompleto, PedidoCompletoResposta, PedidoResponse
+from SCHEMAS.pedido_schema import PedidoCompleto, PedidoResponse, ListaPedidosResponse
 from SCHEMAS.purchase_schema import PagamentoSchema, PagamentoResponse
 from uuid import uuid4
 
 purchase_router = APIRouter(prefix="/purchase",tags=["Compras"])
 
 # Pedidos
-@purchase_router.get("/",response_model=list[PedidoCompletoResposta])
+@purchase_router.get("/orders",response_model=ListaPedidosResponse)
 async def listar_pedidos(usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
     pedidos = db.query(Pedidos).filter(Pedidos.id_usuario == usuario.id_usuario).all()
     return {"pedidos": pedidos}
 
 
-@purchase_router.post("/", response_model=PedidoResponse)
+@purchase_router.post("/orders", response_model=PedidoResponse)
 async def criar_pedido(pedido_schema: PedidoCompleto, usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
     novo_pedido = Pedidos(
         id_usuario=usuario.id_usuario,
@@ -42,11 +42,13 @@ async def criar_pedido(pedido_schema: PedidoCompleto, usuario: Usuarios = Depend
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=400, detail="Não foi possível criar o pedido.")
-    except Exception:
+    except Exception as e:
+        print(e)
         db.rollback()
         raise HTTPException(status_code=500, detail="Erro inesperado ao criar o pedido.")
 
-    return db.refresh(novo_pedido)
+    db.refresh(novo_pedido)
+    return novo_pedido
 
 
 
@@ -58,12 +60,13 @@ async def adicionar_cartao(cartao_schema: CartaoCadastro, usuario: Usuarios = De
         ,numero_cartao=cartao_schema.numero_cartao
         ,nome_titular=cartao_schema.nome_titular
         ,validade=cartao_schema.validade
-        ,cvv=cartao_schema.cvv
+        ,codigo_seguranca=cartao_schema.codigo_seguranca
+        ,tipo=cartao_schema.tipo
     )
-
+    
     db.add(cartao_novo)
     
-    try: 
+    try:
         db.commit()
     except IntegrityError:
         db.rollback()
@@ -71,8 +74,9 @@ async def adicionar_cartao(cartao_schema: CartaoCadastro, usuario: Usuarios = De
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="Erro inesperado ao adicionar o cartão.")
-    
-    return db.refresh(cartao_novo)
+
+    db.refresh(cartao_novo)
+    return cartao_novo
 
 
 @purchase_router.get("/card", response_model=list[CartaoResponse])
@@ -126,7 +130,8 @@ async def realizar_pagamento(pagamento_schema: PagamentoSchema, usuario: Usuario
         db.rollback()
         raise HTTPException(status_code=500, detail="Erro inesperado ao realizar o pagamento.")
     
-    return db.refresh(novo_pagamento)
+    db.refresh(novo_pagamento)
+    return novo_pagamento
 
 
 @purchase_router.get("/payment", response_model=list[PagamentoResponse])

@@ -2,7 +2,12 @@ from sqlalchemy import String, Integer, Boolean, NUMERIC, ForeignKey, DateTime, 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC
 from MODELS import Base
-from MODELS.usuarios import Usuarios
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from MODELS.usuarios import Usuarios
+    from MODELS.enderecos import Enderecos
+
 
 class Pedidos(Base):
 
@@ -58,13 +63,18 @@ class Pedidos(Base):
 
     produtos = relationship(
         "Pedidos_Produtos"
-        ,back_populates="pedidos"
+        ,back_populates="pedido"
     )
 
     pagamentos = relationship(
         "Pagamentos"
-        ,back_populates="pedidos"
+        ,back_populates="pedido"
     )
+
+    endereco: Mapped["Enderecos"] = relationship(
+    "Enderecos"
+    ,back_populates="pedidos"
+)
 
     __table_args__ = (
         CheckConstraint(

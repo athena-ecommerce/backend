@@ -43,15 +43,13 @@ class Usuarios(Base):
     )
 
     cartoes: Mapped[list["Cartoes"]] = relationship(
-        "Cartoes",
-        back_populates="usuario",
-        cascade="all, delete-orphan"
+        "Cartoes"
+        ,back_populates="usuario"
     )
 
     pedidos: Mapped[list["Pedidos"]] = relationship(
-        "Pedidos",
-        back_populates="usuario",
-        cascade="all, delete-orphan"
+        "Pedidos"
+        ,back_populates="usuario"
     )
 
     __table_args__ = (

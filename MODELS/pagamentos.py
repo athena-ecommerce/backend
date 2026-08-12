@@ -1,5 +1,5 @@
 from sqlalchemy import TIMESTAMP, CheckConstraint, ForeignKey, Integer, Numeric, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC
 
 from MODELS import Base
@@ -42,6 +42,13 @@ class Pagamentos(Base):
         TIMESTAMP()
         ,server_default=func.current_timestamp()
     )
+
+    pedido = relationship(
+        "Pedidos"
+        ,back_populates="pagamentos"
+    )
+
+    cartao = relationship("Cartoes", back_populates="pagamentos")
 
     __table_args__ = (
         CheckConstraint(

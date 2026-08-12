@@ -32,7 +32,7 @@ class Pedidos_Produtos(Base):
 
     pedido = relationship(
         "Pedidos"
-        ,back_populates="pedidos"
+        ,back_populates="produtos"
     )
 
     produto = relationship(

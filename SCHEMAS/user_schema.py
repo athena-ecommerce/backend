@@ -7,6 +7,7 @@ class UserResponse(BaseModel):
     nome_completo: str
     login: str
     data_nascimento: date
+    tipo_acesso: str
     enderecos: list[EnderecoResponse]
 
     model_config = ConfigDict(

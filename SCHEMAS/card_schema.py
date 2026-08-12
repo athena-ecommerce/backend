@@ -4,7 +4,8 @@ class CartaoCadastro(BaseModel):
     numero_cartao: str
     nome_titular: str
     validade: str
-    cvv: str
+    codigo_seguranca: str
+    tipo: str
     
     model_config = ConfigDict(
         from_attributes=True
@@ -15,7 +16,8 @@ class CartaoResponse(BaseModel):
     numero_cartao: str
     nome_titular: str
     validade: str
-    cvv: str
+    codigo_seguranca: str
+    tipo: str
     
     model_config = ConfigDict(
         from_attributes=True

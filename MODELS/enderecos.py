@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from MODELS.usuarios import Usuarios
+    from MODELS.pedidos import Pedidos
 
 class Enderecos(Base):
 
@@ -40,6 +41,11 @@ class Enderecos(Base):
         "Usuarios"
         ,back_populates="enderecos"
     )
+
+    pedidos: Mapped[list["Pedidos"]] = relationship(
+    "Pedidos"
+    ,back_populates="endereco"
+)
 
     __table_args__ = (
         CheckConstraint(

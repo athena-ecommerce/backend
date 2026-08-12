@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Boolean, NUMERIC, ForeignKey, DateTime, CheckConstraint, Index
+from sqlalchemy import String, Integer, Boolean, NUMERIC, ForeignKey, DateTime, CheckConstraint, Index, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC
 from MODELS import Base
@@ -18,6 +18,8 @@ class Produtos(Base):
     tipo_arte: Mapped[str] = mapped_column(String(100))
 
     preco: Mapped[float] = mapped_column(NUMERIC(10,2))
+
+    descricao: Mapped[str] = mapped_column(Text)
 
     id_usuario: Mapped[int] = mapped_column(
         ForeignKey(
