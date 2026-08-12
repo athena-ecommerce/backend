@@ -1,9 +1,10 @@
 import redis
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from DEPENDENCIES import pegar_sessao, verificar_token, pegar_redis
-from MODELS import Produtos, Usuarios
+from MODELS import Imagens_Quadros, Produtos, Usuarios
 from SCHEMAS import CarrinhoResposta, ItemCarrinhoAdicionar, ItemCarrinhoResposta
 
 cart_router = APIRouter(prefix="/cart", tags=["Carrinho"])
@@ -31,11 +32,18 @@ def montar_resposta_carrinho(
     total = 0.0
 
     for id_produto_str, quantidade_str in itens_redis.items():
-        produto = db.get(Produtos, int(id_produto_str))
+        resultado = db.execute(
+            select(Produtos, Usuarios, Imagens_Quadros)
+            .join(Usuarios, Usuarios.id_usuario == Produtos.id_usuario)
+            .join(Imagens_Quadros, Imagens_Quadros.id_produto == Produtos.id_produto)
+            .where(Produtos.id_produto == int(id_produto_str))
+        ).first()
 
-        if not produto:
+        if not resultado:
             # a arte pode ter sido deletada depois de ter sido colocada no carrinho
             continue
+
+        produto, artista, imagem = resultado
 
         quantidade = int(quantidade_str)
         subtotal = float(produto.preco) * quantidade
@@ -48,6 +56,11 @@ def montar_resposta_carrinho(
                 preco=float(produto.preco),
                 quantidade=quantidade,
                 subtotal=subtotal,
+                id_usuario=produto.id_usuario,
+                autor=artista.nome_completo,
+                imagem=imagem.imagem,
+                alt=imagem.descricao_foto,
+                dimensoes=imagem.dimensoes,
             )
         )
 

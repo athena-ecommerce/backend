@@ -30,9 +30,10 @@ class Produtos(Base):
     )
     
     pedidos_produtos: Mapped[list["Pedidos_Produtos"]] = relationship(
-    "Pedidos_Produtos"
-    ,back_populates="produto"
-)
+        "Pedidos_Produtos",
+        back_populates="produto",
+        passive_deletes=True,
+    )
 
     __table_args__ = (
         CheckConstraint(

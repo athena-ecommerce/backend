@@ -11,11 +11,15 @@ from SCHEMAS import ArteAtualizar, ArteCadastro, ArteResposta
 import os
 import cloudinary
 import cloudinary.uploader
+from cloudinary.exceptions import Error as CloudinaryError
 from dotenv import load_dotenv
 
 load_dotenv()
 
 arts_router = APIRouter(prefix="/arts", tags=["Artes"])
+
+TIPOS_IMAGEM_PERMITIDOS = {"image/jpeg", "image/png", "image/webp"}
+TAMANHO_MAXIMO_IMAGEM = 2_621_440  # 2,5 MiB
 
 cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -51,6 +55,20 @@ def validar_dono_da_arte(arte: Produtos, usuario: Usuarios):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Essa arte não pertence a você",
         )
+
+def validar_imagem_upload(imagem: UploadFile):
+    if imagem.content_type not in TIPOS_IMAGEM_PERMITIDOS:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Envie uma imagem JPG, PNG ou WebP.",
+        )
+
+    if imagem.size is not None and imagem.size > TAMANHO_MAXIMO_IMAGEM:
+        raise HTTPException(
+            status_code=413,
+            detail="A imagem deve ter no máximo 2,5 MB.",
+        )
+
 
 def cadastrar_imagem(imagem: UploadFile):
     resultado = cloudinary.uploader.upload(
@@ -90,13 +108,14 @@ def deletar_imagem(public_id: str):
             detail="Esse quadro não foi encontrado!",
         )
 
-def montar_dicionario_resposta(arte: Pedido, imagem_arte: Imagens_Quadros):
+def montar_dicionario_resposta(arte: Produtos, imagem_arte: Imagens_Quadros):
     return  {
         "id_produto": arte.id_produto,
         "nome": arte.nome,
         "tipo_arte": arte.tipo_arte,
         "preco": arte.preco,
         "id_usuario": arte.id_usuario,
+        "descricao": arte.descricao,
         "imagem": imagem_arte,
     }
 
@@ -226,6 +245,7 @@ async def cadastrar_arte(
             detail="Somente artistas podem cadastrar artes",
         )
 
+    validar_imagem_upload(arte_schema.imagem)
     public_id = None
 
     try:
@@ -293,7 +313,15 @@ async def cadastrar_arte(
                     cloudinary_error,
                 )
 
+        db.rollback()
         print("ERRO AO CADASTRAR ARTE:", repr(e))
+
+        if isinstance(e, CloudinaryError):
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Não foi possível enviar a imagem. Tente novamente.",
+            ) from e
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Não foi possível cadastrar a arte.",
@@ -310,6 +338,7 @@ async def editar_arte(
 ):
     arte = buscar_arte_http(id_produto, db)
     validar_dono_da_arte(arte, usuario)
+    validar_imagem_upload(arte_schema.imagem)
 
     arte.nome = arte_schema.nome
     arte.tipo_arte = arte_schema.tipo_arte
@@ -349,7 +378,9 @@ async def deletar_arte(
         # TRANSAÇÃO DO BANCO
         # -----------------------------------   
 
-        db.delete(imagem_arte)
+        # A chave estrangeira da imagem usa ON DELETE CASCADE.
+        # Excluir somente a obra evita duas operações concorrentes
+        # sobre o mesmo relacionamento no flush do SQLAlchemy.
         db.delete(arte)
 
         db.commit() 
@@ -358,6 +389,9 @@ async def deletar_arte(
         # O banco agora está consistente.
 
     except Exception as e:
+
+        db.rollback()
+        print("ERRO AO EXCLUIR ARTE:", repr(e))
 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

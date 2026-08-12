@@ -23,6 +23,7 @@ class ArteCadastro(BaseModel):
         nome: str = Form(...),
         tipo_arte: str = Form(...),
         preco: float = Form(...),
+        descricao: str = Form(...),
         imagem: UploadFile = File(...),
         descricao_foto: str = Form(...),
         dimensoes: str = Form(...),
@@ -31,6 +32,7 @@ class ArteCadastro(BaseModel):
             nome=nome,
             tipo_arte=tipo_arte,
             preco=preco,
+            descricao=descricao,
             imagem=imagem,
             descricao_foto=descricao_foto,
             dimensoes=dimensoes
@@ -58,6 +60,7 @@ class ArteAtualizar(BaseModel):
         nome: str = Form(...),
         tipo_arte: str = Form(...),
         preco: float = Form(...),
+        descricao: str = Form(...),
         imagem: UploadFile = File(...),
         descricao_foto: str = Form(...),
         dimensoes: str = Form(...),
@@ -66,6 +69,7 @@ class ArteAtualizar(BaseModel):
             nome=nome,
             tipo_arte=tipo_arte,
             preco=preco,
+            descricao=descricao,
             imagem=imagem,
             descricao_foto=descricao_foto,
             dimensoes=dimensoes

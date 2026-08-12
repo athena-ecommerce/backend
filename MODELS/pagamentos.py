@@ -1,5 +1,5 @@
 from sqlalchemy import TIMESTAMP, CheckConstraint, ForeignKey, Integer, Numeric, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC
 
 from MODELS import Base
@@ -57,4 +57,14 @@ class Pagamentos(Base):
             "(id_cartao IS NULL AND chave_pix IS NOT NULL)"
             ,name="chk_pagamento_um_metodo"
         ),
+    )
+
+    pedido = relationship(
+        "Pedidos",
+        back_populates="pagamentos",
+    )
+
+    cartao = relationship(
+        "Cartoes",
+        back_populates="pagamentos",
     )

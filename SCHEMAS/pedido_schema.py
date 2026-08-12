@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from datetime import date
+from datetime import date, datetime
 from SCHEMAS.address_schema import EnderecoCompleto
 from SCHEMAS.produtos_schema import ArteCadastro
 from SCHEMAS.pedido_produto_schema import PedidosProdutosSchema
@@ -35,10 +35,8 @@ class PedidoCompletoResposta(BaseModel):
 class PedidoResponse(BaseModel):
     id_pedido: int
     valor_total: float
-    data_pedido: date
+    data_pedido: datetime
     status: str
-    endereco: EnderecoCompleto
-    produtos: list[ArteCadastro]
 
     model_config = ConfigDict(
         from_attributes=True,      

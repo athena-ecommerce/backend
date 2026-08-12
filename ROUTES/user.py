@@ -91,6 +91,12 @@ async def deletar_endereco_usuario(
 
     try:
         db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Este endereço está vinculado a um pedido e não pode ser excluído.",
+        )
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="Erro inesperado ao deletar o endereço.")

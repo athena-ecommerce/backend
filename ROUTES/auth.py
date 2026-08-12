@@ -19,8 +19,8 @@ RESET_CODE_EXPIRE_MINUTES = 10
 
 
 def criar_configuracao_email():
-    email = os.getenv("ATHENA_EMAIL")
-    senha = os.getenv("ATHENA_PASSWORD")
+    email = os.getenv("ATHENA_EMAIL", "").strip()
+    senha = os.getenv("ATHENA_PASSWORD", "").replace(" ", "")
     if not email or not senha:
         return None
     return ConnectionConfig(
@@ -32,6 +32,7 @@ def criar_configuracao_email():
         MAIL_STARTTLS=True,
         MAIL_SSL_TLS=False,
         USE_CREDENTIALS=True,
+        VALIDATE_CERTS=True,
     )
 
 auth_router = APIRouter(prefix="/auth",tags=["Autenticação"])
@@ -113,15 +114,17 @@ async def login(login_schema: UsuarioLogin, db: Session = Depends(pegar_sessao))
 
 @auth_router.post("/login-form")
 async def login_form(dados_formulario: OAuth2PasswordRequestForm = Depends(), db : Session =Depends(pegar_sessao)):
-    usuario = autenticar_usuario(login=dados_formulario.username, senha=dados_formulario.password, db=db)
+    usuario = validar_login(login=dados_formulario.username, senha=dados_formulario.password, db=db)
     if usuario:
         access_token = criar_token(usuario.id_usuario)
+        refresh_token = criar_token(usuario.id_usuario, timedelta(days=7), tipo="refresh")
         return {
             "access_token":access_token,
+            "refresh_token":refresh_token,
             "token_type":"Bearer"
         }
     else:
-        HTTPException(status_code=400, detail="Usuário não encontrado!")
+        raise HTTPException(status_code=400, detail="Usuário não encontrado!")
 
 @auth_router.get("/refresh-form")
 async def use_refresh_token_form(usuario: Usuarios = Depends(verificar_token_oauth)):
@@ -133,7 +136,7 @@ async def use_refresh_token_form(usuario: Usuarios = Depends(verificar_token_oau
 
 @auth_router.get("/refresh")
 async def use_refresh_token(refresh_token: str, db: Session = Depends(pegar_sessao)):
-    usuario: Usuarios = verificar_token(refresh_token=refresh_token,db=db)
+    usuario: Usuarios = verificar_token(token=refresh_token, db=db)
     access_token = criar_token(usuario.id_usuario)
 
     return {
@@ -169,7 +172,8 @@ async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Dep
 
         try:
             await FastMail(configuracao_email).send_message(message=mensagem)
-        except Exception:
+        except Exception as erro:
+            print("Erro ao enviar e-mail de recuperação:", repr(erro))
             raise HTTPException(
                 status_code=503,
                 detail="Não foi possível enviar o código por e-mail. Tente novamente mais tarde.",

@@ -58,12 +58,12 @@ class Pedidos(Base):
 
     produtos = relationship(
         "Pedidos_Produtos"
-        ,back_populates="pedidos"
+        ,back_populates="pedido"
     )
 
     pagamentos = relationship(
         "Pagamentos"
-        ,back_populates="pedidos"
+        ,back_populates="pedido"
     )
 
     __table_args__ = (

@@ -19,6 +19,11 @@ class ItemCarrinhoResposta(BaseModel):
     preco: float
     quantidade: int
     subtotal: float
+    id_usuario: int
+    autor: str
+    imagem: str
+    alt: str
+    dimensoes: str
 
 
 class CarrinhoResposta(BaseModel):

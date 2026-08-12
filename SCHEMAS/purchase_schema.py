@@ -1,6 +1,8 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
-from datetime import date
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Literal, Optional
+from datetime import datetime
+
+from SCHEMAS.pedido_produto_schema import PedidosProdutosSchema
 
 class PagamentoSchema(BaseModel):
     id_pedido: int
@@ -25,7 +27,7 @@ class PagamentoResponse(BaseModel):
     chave_pix: Optional[str]
     valor: float
     numero_parcela: int
-    data_pagamento: date
+    data_pagamento: datetime
 
     model_config = ConfigDict(
         from_attributes=True,      
@@ -34,3 +36,23 @@ class PagamentoResponse(BaseModel):
         str_strip_whitespace=True, 
         frozen=True,
     )
+
+
+class PagamentoCartaoCompleto(BaseModel):
+    id_endereco: int
+    valor_total: float = Field(gt=0)
+    produtos: list[PedidosProdutosSchema] = Field(min_length=1)
+    numero_cartao: str = Field(pattern=r"^\d{16}$")
+    nome_titular: str = Field(min_length=3, max_length=100)
+    validade: str = Field(pattern=r"^(0[1-9]|1[0-2])/\d{2}$")
+    cvv: str = Field(pattern=r"^\d{3}$")
+    tipo: Literal["CREDITO", "DEBITO"]
+    numero_parcelas: int = Field(ge=1, le=12)
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+
+class PagamentoCartaoCompletoResposta(BaseModel):
+    id_pedido: int
+    id_pagamento: int
+    status: str
