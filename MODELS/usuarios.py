@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from MODELS.enderecos import Enderecos
+    from MODELS.cartoes import Cartoes
+    from MODELS.pedidos import Pedidos
 
 class Usuarios(Base):
 
@@ -36,6 +38,18 @@ class Usuarios(Base):
 
     enderecos: Mapped[list["Enderecos"]] = relationship(
         "Enderecos",
+        back_populates="usuario",
+        cascade="all, delete-orphan"
+    )
+
+    cartoes: Mapped[list["Cartoes"]] = relationship(
+        "Cartoes",
+        back_populates="usuario",
+        cascade="all, delete-orphan"
+    )
+
+    pedidos: Mapped[list["Pedidos"]] = relationship(
+        "Pedidos",
         back_populates="usuario",
         cascade="all, delete-orphan"
     )

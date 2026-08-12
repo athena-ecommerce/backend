@@ -1,7 +1,11 @@
-from sqlalchemy import String, Integer, Boolean, NUMERIC, ForeignKey, DateTime, CheckConstraint, Index
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Integer, Boolean, NUMERIC, ForeignKey, DateTime, CheckConstraint, Index, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, UTC
 from MODELS import Base
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from MODELS.pedidos_produtos import Pedidos_Produtos
 
 class Produtos(Base):
     
@@ -15,6 +19,8 @@ class Produtos(Base):
 
     preco: Mapped[float] = mapped_column(NUMERIC(10,2))
 
+    descricao: Mapped[str] = mapped_column(Text)
+
     id_usuario: Mapped[int] = mapped_column(
         ForeignKey(
             "usuarios.id_usuario"
@@ -22,6 +28,11 @@ class Produtos(Base):
             ,ondelete="RESTRICT"
         )
     )
+    
+    pedidos_produtos: Mapped[list["Pedidos_Produtos"]] = relationship(
+    "Pedidos_Produtos"
+    ,back_populates="produto"
+)
 
     __table_args__ = (
         CheckConstraint(
