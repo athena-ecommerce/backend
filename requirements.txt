@@ -12,4 +12,3 @@ python-multipart==0.0.32
 fastapi-mail==1.6.5
 email-validator==2.3.0
 pydantic
-booktype

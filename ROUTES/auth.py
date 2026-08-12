@@ -4,7 +4,7 @@ from SCHEMAS import UsuarioCadastro, UsuarioCadastroResposta, UsuarioLoginRespos
 from MODELS import Usuarios, Recuperacoes_Senhas
 from DEPENDENCIES import pegar_sessao, verificar_token_oauth, verificar_token
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, update
 from CORE import bcrypt_context, ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 from datetime import timedelta, datetime, timezone
 from jose import jwt, JWTError
@@ -14,16 +14,25 @@ from dotenv import load_dotenv
 import os
 import secrets
 
-conf = ConnectionConfig(
-    MAIL_USERNAME=str(os.getenv("ATHENA_EMAIL")),
-    MAIL_PASSWORD=str(os.getenv("ATHENA_PASSWORD")),
-    MAIL_FROM=str(os.getenv("ATHENA_EMAIL")),
-    MAIL_PORT=587,
-    MAIL_SERVER="smtp.gmail.com",
-    MAIL_STARTTLS=True,
-    MAIL_SSL_TLS=False,
-    USE_CREDENTIALS=True
-)
+RESET_PASSWORD_DEBUG = os.getenv("RESET_PASSWORD_DEBUG", "false").lower() == "true"
+RESET_CODE_EXPIRE_MINUTES = 10
+
+
+def criar_configuracao_email():
+    email = os.getenv("ATHENA_EMAIL")
+    senha = os.getenv("ATHENA_PASSWORD")
+    if not email or not senha:
+        return None
+    return ConnectionConfig(
+        MAIL_USERNAME=email,
+        MAIL_PASSWORD=senha,
+        MAIL_FROM=email,
+        MAIL_PORT=587,
+        MAIL_SERVER="smtp.gmail.com",
+        MAIL_STARTTLS=True,
+        MAIL_SSL_TLS=False,
+        USE_CREDENTIALS=True,
+    )
 
 auth_router = APIRouter(prefix="/auth",tags=["Autenticação"])
 
@@ -134,7 +143,7 @@ async def use_refresh_token(refresh_token: str, db: Session = Depends(pegar_sess
 
 @auth_router.post("/resetpassword/email")
 async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Depends(pegar_sessao)):
-    email = recuperar_senha_schema.email
+    email = recuperar_senha_schema.email.lower()
     stmt = select(Usuarios).where(Usuarios.login == email)
     usuario = db.scalar(stmt)
 
@@ -143,22 +152,40 @@ async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Dep
 
     codigo = f"{secrets.randbelow(1000000):06}"
 
-    mensagem = MessageSchema(
-        subject="Recuperação de senha - Athena"
-        ,recipients=[email]
-        ,body="Seu código é: "+str(codigo)
-        ,subtype="plain"
-    )
+    configuracao_email = criar_configuracao_email()
+    if not RESET_PASSWORD_DEBUG:
+        if not configuracao_email:
+            raise HTTPException(
+                status_code=503,
+                detail="O envio de e-mail ainda não está configurado. Tente novamente mais tarde.",
+            )
 
-    fm = FastMail(conf)
-    try:
-        await fm.send_message(message=mensagem)
-    except Exception as E:
-        print(E)
-        raise
+        mensagem = MessageSchema(
+            subject="Recuperação de senha - Athena",
+            recipients=[email],
+            body="Seu código de recuperação Athena é: " + codigo,
+            subtype="plain",
+        )
+
+        try:
+            await FastMail(configuracao_email).send_message(message=mensagem)
+        except Exception:
+            raise HTTPException(
+                status_code=503,
+                detail="Não foi possível enviar o código por e-mail. Tente novamente mais tarde.",
+            )
 
     codigo_criptografado = bcrypt_context.hash(codigo)
-    tempo_expiracao = datetime.utcnow() + timedelta(minutes=2)
+    tempo_expiracao = datetime.utcnow() + timedelta(minutes=RESET_CODE_EXPIRE_MINUTES)
+
+    db.execute(
+        update(Recuperacoes_Senhas)
+        .where(
+            Recuperacoes_Senhas.login == email,
+            Recuperacoes_Senhas.usado == False,
+        )
+        .values(usado=True)
+    )
 
     db.add(
         Recuperacoes_Senhas(
@@ -171,21 +198,27 @@ async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Dep
 
     db.commit()
 
-    return JSONResponse(
-        status_code=200
-        ,content={
-            "mensagem":"E-mail mandado com sucesso!"
-        }
-    )
+    resposta = {
+        "mensagem": "Código de recuperação gerado com sucesso!",
+        "expires_in": RESET_CODE_EXPIRE_MINUTES * 60,
+    }
+    if RESET_PASSWORD_DEBUG:
+        resposta["debug_code"] = codigo
+        resposta["mensagem"] = "Código gerado para teste local."
+    return resposta
 
 @auth_router.post("/resetpassword/validation")
 async def validar_codigo_resetar_senha(codigo_schema: RecuperarSenhaCodigo, db: Session = Depends(pegar_sessao)):
-    email = codigo_schema.email
+    email = codigo_schema.email.lower()
     codigo = codigo_schema.codigo
-    stmt = select(Recuperacoes_Senhas).where(
-        email==Recuperacoes_Senhas.login
-        ,datetime.utcnow()<=Recuperacoes_Senhas.tempo_expiracao
-        ,Recuperacoes_Senhas.usado==False
+    stmt = (
+        select(Recuperacoes_Senhas)
+        .where(
+            email == Recuperacoes_Senhas.login,
+            datetime.utcnow() <= Recuperacoes_Senhas.tempo_expiracao,
+            Recuperacoes_Senhas.usado == False,
+        )
+        .order_by(Recuperacoes_Senhas.id_recuperacao_senha.desc())
     )
     recuperacao = db.scalar(stmt)
     if not recuperacao:
@@ -193,18 +226,17 @@ async def validar_codigo_resetar_senha(codigo_schema: RecuperarSenhaCodigo, db: 
     elif not bcrypt_context.verify(codigo,recuperacao.codigo):
         raise HTTPException(status_code=400, detail="Código inválido. Verifique se o código está correto e se o tempo não expirou!")
 
-    recuperacao.usado = True
-
     stmt = select(Usuarios).where(Usuarios.login == email)
     usuario = db.scalar(stmt)
+    if not usuario:
+        raise HTTPException(status_code=400, detail="Usuário não encontrado.")
 
     dic_inf = {
         "sub":str(usuario.id_usuario)
-        ,"exp":datetime.utcnow() + timedelta(minutes=2)
-        ,"type":"access"
+        ,"exp":datetime.utcnow() + timedelta(minutes=5)
+        ,"type":"password_reset"
+        ,"reset_id":recuperacao.id_recuperacao_senha
     }
-
-    db.commit()
 
     jwt_permissao = jwt.encode(dic_inf,SECRET_KEY,ALGORITHM)
 
@@ -214,10 +246,29 @@ async def validar_codigo_resetar_senha(codigo_schema: RecuperarSenhaCodigo, db: 
 
 @auth_router.post("/resetpassword/newpassword")
 async def mudar_senha(senha_schema: RecuperarSenhaNovaSenha,token_validation: str, db: Session = Depends(pegar_sessao)):
+    try:
+        dados_token = jwt.decode(token_validation, SECRET_KEY, ALGORITHM)
+        if dados_token.get("type") != "password_reset":
+            raise JWTError("Tipo de token inválido")
+        id_usuario = int(dados_token.get("sub"))
+        id_recuperacao = int(dados_token.get("reset_id"))
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="A autorização para redefinir a senha expirou. Solicite um novo código.")
 
-    usuario = verificar_token(token_validation,db)
+    usuario = db.get(Usuarios, id_usuario)
+    recuperacao = db.get(Recuperacoes_Senhas, id_recuperacao)
+    if (
+        not usuario
+        or not recuperacao
+        or recuperacao.usado
+        or recuperacao.login != usuario.login
+        or recuperacao.tempo_expiracao < datetime.utcnow()
+    ):
+        raise HTTPException(status_code=401, detail="A autorização para redefinir a senha não é mais válida.")
+
     senha_criptografada = bcrypt_context.hash(senha_schema.senha)
     usuario.senha = senha_criptografada
+    recuperacao.usado = True
 
     db.commit()
     return JSONResponse(

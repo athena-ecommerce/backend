@@ -1,11 +1,11 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import Optional
 from datetime import date
 
 class UsuarioCadastro(BaseModel):
 
     nome_completo: str
-    login: str
+    login: EmailStr
     senha: str
     data_nascimento: date
     cpf: str
@@ -64,7 +64,7 @@ class UsuarioLoginResposta(BaseModel):
 
 class RecuperarSenha(BaseModel):
 
-    email: str
+    email: EmailStr
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -76,7 +76,7 @@ class RecuperarSenha(BaseModel):
 
 class RecuperarSenhaCodigo(BaseModel):
 
-    email: str
+    email: EmailStr
     codigo: str
 
     model_config = ConfigDict(
