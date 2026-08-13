@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import date
 
 class EnderecoCompleto(BaseModel):
+    # Dados usados ao cadastrar um endereço; campos extras são rejeitados pela configuração abaixo.
     rua: str
     bairro: str
     estado: str
@@ -20,6 +21,7 @@ class EnderecoCompleto(BaseModel):
 
 
 class EnderecoResponse(BaseModel):
+    # Resposta com o identificador criado para permitir seleção e exclusão no checkout.
     id_endereco: int
     rua: str
     bairro: str
@@ -30,6 +32,7 @@ class EnderecoResponse(BaseModel):
 
 
 class EnderecoCepResponse(BaseModel):
+    # Formato reduzido retornado pela consulta de CEP antes do usuário confirmar o endereço.
     rua: str
     bairro: str
     estado: str

@@ -5,6 +5,7 @@ from MODELS import Base
 from MODELS.usuarios import Usuarios
 
 class Pedidos(Base):
+    # Cabeçalho da compra: comprador, endereço, valor e status do pedido.
 
     __tablename__ = "pedidos"
 

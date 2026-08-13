@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
 
 class Cartoes(Base):
+    # Cartões ficam vinculados ao usuário e podem ser reutilizados em pagamentos futuros.
     
     __tablename__ = "cartoes"
 

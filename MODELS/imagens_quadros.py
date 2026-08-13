@@ -5,6 +5,7 @@ from MODELS import Base
 from typing import TYPE_CHECKING
 
 class Imagens_Quadros(Base):
+    # Armazena a URL e os metadados da imagem hospedada no Cloudinary.
 
     __tablename__ = "imagens_quadros"
 

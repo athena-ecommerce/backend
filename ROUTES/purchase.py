@@ -13,12 +13,14 @@ import secrets
 purchase_router = APIRouter(prefix="/purchase",tags=["Compras"])
 
 # Pedidos
+# Lista somente os pedidos pertencentes ao comprador autenticado.
 @purchase_router.get("/",response_model=list[PedidoResponse])
 async def listar_pedidos(usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
     pedidos = db.query(Pedidos).filter(Pedidos.id_usuario == usuario.id_usuario).all()
     return pedidos
 
 
+# Cria o pedido principal e registra nele cada produto escolhido no checkout.
 @purchase_router.post("/", response_model=PedidoResponse)
 async def criar_pedido(pedido_schema: PedidoCompleto, usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
     endereco = db.query(Enderecos).filter(
@@ -72,6 +74,7 @@ async def criar_pedido(pedido_schema: PedidoCompleto, usuario: Usuarios = Depend
 
 
 # Cartões
+# Salva um cartão para que o usuário possa reutilizá-lo em pagamentos futuros.
 @purchase_router.post("/card", response_model=CartaoResponse)
 async def adicionar_cartao(cartao_schema: CartaoCadastro, usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
     cartao_novo = Cartoes(
@@ -104,6 +107,7 @@ async def adicionar_cartao(cartao_schema: CartaoCadastro, usuario: Usuarios = De
     )
 
 
+# Lista os cartões da conta sem retornar os dados sensíveis completos.
 @purchase_router.get("/card", response_model=list[CartaoResponse])
 async def listar_cartoes(usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
     cartoes = db.query(Cartoes).filter(Cartoes.id_usuario == usuario.id_usuario).all()
@@ -119,6 +123,7 @@ async def listar_cartoes(usuario: Usuarios = Depends(verificar_token), db: Sessi
     ]
 
 
+# Exclui um cartão apenas quando ele pertence ao usuário autenticado.
 @purchase_router.delete("/card/{id_cartao}", status_code=204)
 async def deletar_cartao(id_cartao: int, usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
     cartao = db.query(Cartoes).filter(Cartoes.id_cartao == id_cartao, Cartoes.id_usuario == usuario.id_usuario).first()
@@ -136,6 +141,7 @@ async def deletar_cartao(id_cartao: int, usuario: Usuarios = Depends(verificar_t
 
 
 # Pagamentos
+# Gera uma chave única que identifica a cobrança PIX atual.
 @purchase_router.get("/pix-key")
 async def criar_chave_pix():
     chave_pix = str(uuid4())
@@ -143,6 +149,7 @@ async def criar_chave_pix():
     return {"chave_pix": chave_pix}
 
 
+# Registra o pagamento usando o cartão ou a chave PIX informada no payload.
 @purchase_router.post("/payment", response_model=PagamentoResponse)
 async def realizar_pagamento(pagamento_schema: PagamentoSchema, usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
     pedido = db.query(Pedidos).filter(Pedidos.id_pedido == pagamento_schema.id_pedido, Pedidos.id_usuario == usuario.id_usuario).first()
@@ -175,6 +182,7 @@ async def realizar_pagamento(pagamento_schema: PagamentoSchema, usuario: Usuario
     return novo_pagamento
 
 
+# Consulta o histórico de pagamentos da conta atual.
 @purchase_router.get("/payment", response_model=list[PagamentoResponse])
 async def listar_pagamentos(usuario: Usuarios = Depends(verificar_token), db: Session = Depends(pegar_sessao)):
     return (
@@ -185,6 +193,7 @@ async def listar_pagamentos(usuario: Usuarios = Depends(verificar_token), db: Se
     )
 
 
+# Executa o fluxo completo de cartão novo: pedido, cartão e pagamento em uma operação.
 @purchase_router.post("/card-payment", response_model=PagamentoCartaoCompletoResposta)
 async def pagar_com_cartao(
     dados: PagamentoCartaoCompleto,

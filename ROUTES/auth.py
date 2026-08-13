@@ -19,6 +19,7 @@ RESET_CODE_EXPIRE_MINUTES = 10
 
 
 def criar_configuracao_email():
+    # A configuração só é criada quando as credenciais existem; isso permite rodar o projeto localmente sem e-mail.
     email = os.getenv("ATHENA_EMAIL", "").strip()
     senha = os.getenv("ATHENA_PASSWORD", "").replace(" ", "")
     if not email or not senha:
@@ -38,6 +39,7 @@ def criar_configuracao_email():
 auth_router = APIRouter(prefix="/auth",tags=["Autenticação"])
 
 def usuario_existe(usuario: Usuarios, db: Session):
+    # A consulta impede que o login seja cadastrado novamente.
     usuario = db.scalar(select(Usuarios).where(Usuarios.login == usuario.login))
     if usuario:
         return True
@@ -45,6 +47,7 @@ def usuario_existe(usuario: Usuarios, db: Session):
         return False
 
 def cadastrar_usuario(usuario: Usuarios, db: Session):
+    # O hash protege a senha antes que o objeto seja persistido.
     senha_criptografada = bcrypt_context.hash(usuario.senha)
     usuario.senha = senha_criptografada
 
@@ -54,6 +57,7 @@ def cadastrar_usuario(usuario: Usuarios, db: Session):
     return usuario
 
 def validar_login(login:str, senha:str, db:Session):
+    # A autenticação combina busca pelo login e verificação do hash da senha.
     stmt = select(Usuarios).where(Usuarios.login == login)
     usuario = db.scalar(stmt)
 
@@ -65,6 +69,7 @@ def validar_login(login:str, senha:str, db:Session):
     return usuario
 
 def criar_token(id_usuario: str, duracao_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),tipo="access"):
+    # O tipo identifica se o token pode acessar a API ou apenas renovar a sessão.
     data_expiracao = datetime.now(timezone.utc) + duracao_token
     dic_inf = {
         "sub": str(id_usuario),
@@ -79,6 +84,7 @@ def criar_token(id_usuario: str, duracao_token=timedelta(minutes=ACCESS_TOKEN_EX
     return jwt_codificado
 
 
+# Cria uma conta nova depois de validar se o e-mail ainda está disponível.
 @auth_router.post("/signup", response_model=UsuarioCadastroResposta)
 async def cadastrar(usuario_schema: UsuarioCadastro, db: Session = Depends(pegar_sessao)):
     novo_usuario = Usuarios(
@@ -94,6 +100,7 @@ async def cadastrar(usuario_schema: UsuarioCadastro, db: Session = Depends(pegar
     else:
         return cadastrar_usuario(novo_usuario,db)
 
+# Autentica o usuário e entrega access token e refresh token para manter a sessão.
 @auth_router.post("/login", response_model=UsuarioLoginResposta)
 async def login(login_schema: UsuarioLogin, db: Session = Depends(pegar_sessao)):
     usuario = validar_login(login_schema.login,login_schema.senha, db)
@@ -112,8 +119,10 @@ async def login(login_schema: UsuarioLogin, db: Session = Depends(pegar_sessao))
         ,refresh_token=refresh_token
     )
 
+# Aceita credenciais no formato padrão de formulários OAuth2.
 @auth_router.post("/login-form")
 async def login_form(dados_formulario: OAuth2PasswordRequestForm = Depends(), db : Session =Depends(pegar_sessao)):
+    # Esta versão mantém compatibilidade com clientes OAuth2, como o formulário do Swagger.
     usuario = validar_login(login=dados_formulario.username, senha=dados_formulario.password, db=db)
     if usuario:
         access_token = criar_token(usuario.id_usuario)
@@ -126,6 +135,7 @@ async def login_form(dados_formulario: OAuth2PasswordRequestForm = Depends(), db
     else:
         raise HTTPException(status_code=400, detail="Usuário não encontrado!")
 
+# Renova o access token usando a autenticação OAuth2 já validada pelo Swagger.
 @auth_router.get("/refresh-form")
 async def use_refresh_token_form(usuario: Usuarios = Depends(verificar_token_oauth)):
     access_token = criar_token(usuario.id_usuario)
@@ -134,8 +144,10 @@ async def use_refresh_token_form(usuario: Usuarios = Depends(verificar_token_oau
             "token_type":"Bearer"
         }
 
+# Recebe um refresh token e devolve um novo token de acesso.
 @auth_router.get("/refresh")
 async def use_refresh_token(refresh_token: str, db: Session = Depends(pegar_sessao)):
+    # Um refresh válido gera um novo access token sem pedir a senha novamente.
     usuario: Usuarios = verificar_token(token=refresh_token, db=db)
     access_token = criar_token(usuario.id_usuario)
 
@@ -144,8 +156,10 @@ async def use_refresh_token(refresh_token: str, db: Session = Depends(pegar_sess
             "token_type":"Bearer"
         }
 
+# Inicia a recuperação enviando um código temporário para o e-mail cadastrado.
 @auth_router.post("/resetpassword/email")
 async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Depends(pegar_sessao)):
+    # O código é enviado por e-mail e armazenado apenas como hash para validar a próxima etapa.
     email = recuperar_senha_schema.email.lower()
     stmt = select(Usuarios).where(Usuarios.login == email)
     usuario = db.scalar(stmt)
@@ -211,8 +225,10 @@ async def mandar_email(recuperar_senha_schema: RecuperarSenha, db: Session = Dep
         resposta["mensagem"] = "Código gerado para teste local."
     return resposta
 
+# Confere o código recebido e libera uma autorização curta para redefinir a senha.
 @auth_router.post("/resetpassword/validation")
 async def validar_codigo_resetar_senha(codigo_schema: RecuperarSenhaCodigo, db: Session = Depends(pegar_sessao)):
+    # A validação transforma o código correto em uma autorização temporária para trocar a senha.
     email = codigo_schema.email.lower()
     codigo = codigo_schema.codigo
     stmt = (
@@ -248,8 +264,10 @@ async def validar_codigo_resetar_senha(codigo_schema: RecuperarSenhaCodigo, db: 
         "token_validation":jwt_permissao
     }
 
+# Finaliza a recuperação substituindo a senha e invalidando o código usado.
 @auth_router.post("/resetpassword/newpassword")
 async def mudar_senha(senha_schema: RecuperarSenhaNovaSenha,token_validation: str, db: Session = Depends(pegar_sessao)):
+    # Antes de alterar a senha, a API confirma que a autorização pertence ao usuário e ainda não expirou.
     try:
         dados_token = jwt.decode(token_validation, SECRET_KEY, ALGORITHM)
         if dados_token.get("type") != "password_reset":

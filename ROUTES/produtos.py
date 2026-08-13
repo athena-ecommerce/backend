@@ -39,6 +39,7 @@ def buscar_arte_http(id_produto: int, db: Session) -> Produtos:
     return arte
 
 def buscar_imagem_arte_http(id_produto: int, db: Session) -> Imagens_Quadros:
+    # Localiza os metadados da imagem vinculada à obra ou retorna 404.
     imagem = db.scalar(select(Imagens_Quadros).where(Imagens_Quadros.id_produto == id_produto).limit(1))
 
     if not imagem:
@@ -57,6 +58,7 @@ def validar_dono_da_arte(arte: Produtos, usuario: Usuarios):
         )
 
 def validar_imagem_upload(imagem: UploadFile):
+    # Bloqueia arquivos ausentes ou formatos que não são aceitos pelo catálogo.
     if imagem.content_type not in TIPOS_IMAGEM_PERMITIDOS:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
@@ -82,6 +84,7 @@ def cadastrar_imagem(imagem: UploadFile):
     return [url, public_id]
 
 def atualizar_imagem(imagem: UploadFile, public_id_antigo: str):
+    # Substitui a imagem no mesmo identificador para evitar arquivos antigos no Cloudinary.
 
     resultado = cloudinary.uploader.upload(
         imagem.file,
@@ -97,6 +100,7 @@ def atualizar_imagem(imagem: UploadFile, public_id_antigo: str):
     return [url, public_id]
 
 def deletar_imagem(public_id: str):
+    # Remove o arquivo remoto e sinaliza quando o Cloudinary não encontrou a imagem.
     resultado = cloudinary.uploader.destroy(
         public_id,
         invalidate=True,
@@ -109,6 +113,7 @@ def deletar_imagem(public_id: str):
         )
 
 def montar_dicionario_resposta(arte: Produtos, imagem_arte: Imagens_Quadros):
+    # Converte modelos do banco no formato público esperado pelas páginas do catálogo.
     return  {
         "id_produto": arte.id_produto,
         "nome": arte.nome,
@@ -119,6 +124,7 @@ def montar_dicionario_resposta(arte: Produtos, imagem_arte: Imagens_Quadros):
         "imagem": imagem_arte,
     }
 
+# Lista o catálogo com filtros opcionais de categoria, nome, preço e ordenação.
 @arts_router.get("/", response_model=List[ArteResposta])
 async def listar_artes(
     db: Session = Depends(pegar_sessao),
@@ -173,6 +179,7 @@ async def listar_artes(
     ]
 
 
+# Lista as obras do próprio artista identificado pelo token.
 @arts_router.get("/artist/me", response_model=List[ArteResposta])
 async def listar_minhas_artes(
     usuario: Usuarios = Depends(verificar_token),
@@ -201,6 +208,7 @@ async def listar_minhas_artes(
     ]
 
 
+# Permite consultar a vitrine pública de um artista específico.
 @arts_router.get("/artist/{id_usuario}", response_model=List[ArteResposta])
 async def listar_artes_do_artista(id_usuario: int, db: Session = Depends(pegar_sessao)):
     stmt = (
@@ -226,6 +234,7 @@ async def listar_artes_do_artista(id_usuario: int, db: Session = Depends(pegar_s
     ]
 
 
+# Busca uma obra individual junto dos dados da sua imagem.
 @arts_router.get("/{id_produto}", response_model=ArteResposta)
 async def buscar_arte(id_produto: int, db: Session = Depends(pegar_sessao)):
     arte = buscar_arte_http(id_produto, db)
@@ -233,6 +242,7 @@ async def buscar_arte(id_produto: int, db: Session = Depends(pegar_sessao)):
     return montar_dicionario_resposta(arte,imagem_arte)
 
 
+# Publica uma nova obra, permitindo essa ação somente para contas de artista.
 @arts_router.post("/", response_model=ArteResposta, status_code=status.HTTP_201_CREATED)
 async def cadastrar_arte(
     arte_schema: ArteCadastro = Depends(ArteCadastro.as_form),
@@ -328,6 +338,7 @@ async def cadastrar_arte(
         ) from e
 
 
+# Atualiza os dados e a imagem de uma obra pertencente ao artista logado.
 @arts_router.put("/{id_produto}", response_model=ArteResposta)
 async def editar_arte(
     id_produto: int,
@@ -359,6 +370,7 @@ async def editar_arte(
     return montar_dicionario_resposta(arte,imagem_arte)
 
 
+# Remove a obra do banco e tenta apagar também o arquivo hospedado externamente.
 @arts_router.delete("/{id_produto}", status_code=status.HTTP_204_NO_CONTENT)
 async def deletar_arte(
     id_produto: int,

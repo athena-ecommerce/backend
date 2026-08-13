@@ -4,6 +4,7 @@ from datetime import datetime, UTC
 from MODELS import Base
 
 class Pedidos_Produtos(Base):
+    # Relação entre pedido e obra, com a quantidade comprada de cada item.
 
     __tablename__ = "pedidos_produtos"
 

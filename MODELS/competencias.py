@@ -4,6 +4,7 @@ from datetime import datetime, UTC
 from MODELS import Base
 
 class Competencias(Base):
+    # Catálogo de competências que pode ser associado aos perfis de usuários.
 
     __tablename__ = "competencias"
 

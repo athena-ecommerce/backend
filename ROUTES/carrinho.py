@@ -67,6 +67,7 @@ def montar_resposta_carrinho(
     return CarrinhoResposta(itens=itens_resposta, total=total)
 
 
+# Consulta os itens do carrinho do usuário e calcula os subtotais atuais.
 @cart_router.get("/", response_model=CarrinhoResposta)
 async def ver_carrinho(
     usuario: Usuarios = Depends(verificar_token),
@@ -76,6 +77,7 @@ async def ver_carrinho(
     return montar_resposta_carrinho(usuario, db, redis_cliente)
 
 
+# Adiciona uma obra ao carrinho e renova o prazo de validade no Redis.
 @cart_router.post("/items", response_model=CarrinhoResposta, status_code=status.HTTP_201_CREATED)
 async def adicionar_item(
     item: ItemCarrinhoAdicionar,
@@ -102,6 +104,7 @@ async def adicionar_item(
     return montar_resposta_carrinho(usuario, db, redis_cliente)
 
 
+# Remove uma obra específica e devolve o carrinho já atualizado.
 @cart_router.delete("/items/{art_id}", response_model=CarrinhoResposta)
 async def remover_item(
     art_id: int,
@@ -115,6 +118,7 @@ async def remover_item(
     return montar_resposta_carrinho(usuario, db, redis_cliente)
 
 
+# Limpa todas as obras do carrinho do usuário autenticado.
 @cart_router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
 async def limpar_carrinho(
     usuario: Usuarios = Depends(verificar_token),

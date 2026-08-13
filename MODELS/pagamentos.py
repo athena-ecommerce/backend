@@ -6,6 +6,7 @@ from MODELS import Base
 
 
 class Pagamentos(Base):
+    # Registra uma transação ligada ao pedido, usando cartão ou PIX como método.
     __tablename__ = "pagamentos"
 
     id_pagamento: Mapped[int] = mapped_column(primary_key=True)

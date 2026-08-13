@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ItemCarrinhoAdicionar(BaseModel):
+    # A quantidade precisa ser positiva para não corromper o total do carrinho.
 
     id_produto: int
     quantidade: int = Field(gt=0, default=1)
@@ -13,6 +14,7 @@ class ItemCarrinhoAdicionar(BaseModel):
 
 
 class ItemCarrinhoResposta(BaseModel):
+    # Inclui os dados já enriquecidos do produto para a tela não precisar fazer outra busca.
 
     id_produto: int
     nome: str
@@ -27,6 +29,7 @@ class ItemCarrinhoResposta(BaseModel):
 
 
 class CarrinhoResposta(BaseModel):
+    # Contrato único usado tanto ao consultar quanto ao alterar o carrinho.
 
     itens: List[ItemCarrinhoResposta]
     total: float
