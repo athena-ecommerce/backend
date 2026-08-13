@@ -5,6 +5,7 @@ from datetime import datetime
 from SCHEMAS.pedido_produto_schema import PedidosProdutosSchema
 
 class PagamentoSchema(BaseModel):
+    # Define qual método foi escolhido e os valores que serão registrados na transação.
     id_pedido: int
     id_cartao: Optional[int]
     chave_pix: Optional[str]
@@ -21,6 +22,7 @@ class PagamentoSchema(BaseModel):
 
 
 class PagamentoResponse(BaseModel):
+    # Retorna o comprovante básico do pagamento sem dados sensíveis do cartão.
     id_pagamento: int
     id_pedido: int
     id_cartao: Optional[int]
@@ -39,6 +41,7 @@ class PagamentoResponse(BaseModel):
 
 
 class PagamentoCartaoCompleto(BaseModel):
+    # Modelo usado quando o checkout envia um cartão novo junto dos dados do pedido.
     id_endereco: int
     valor_total: float = Field(gt=0)
     produtos: list[PedidosProdutosSchema] = Field(min_length=1)

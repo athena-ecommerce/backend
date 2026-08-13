@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from MODELS.pedidos import Pedidos
 
 class Usuarios(Base):
+    # Entidade central da aplicação, usada na autenticação, perfil, obras e compras.
 
     __tablename__ = "usuarios"
 

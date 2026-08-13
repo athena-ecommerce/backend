@@ -7,6 +7,7 @@ from CORE import SECRET_KEY, ALGORITHM, oauth2_schema
 from DEPENDENCIES import pegar_sessao
 
 def verificar_token_oauth(token: str = Depends(oauth2_schema), db:Session = Depends(pegar_sessao)):
+    # Decodifica o token OAuth2 e transforma o subject em um usuário do banco.
     try:
         dic_info = jwt.decode(token,SECRET_KEY,ALGORITHM)
         id_usuario = int(dic_info.get("sub"))
@@ -21,6 +22,7 @@ def verificar_token_oauth(token: str = Depends(oauth2_schema), db:Session = Depe
     return usuario
 
 def verificar_token(token: str = Depends(oauth2_schema), db: Session = Depends(pegar_sessao)):
+    # A dependência bloqueia rotas protegidas antes que sua lógica principal seja executada.
     try:
         dic_info = jwt.decode(token,SECRET_KEY,ALGORITHM)
         id_usuario = int(dic_info.get("sub"))

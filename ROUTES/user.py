@@ -12,6 +12,7 @@ from SCHEMAS.address_schema import EnderecoCompleto, EnderecoResponse, EnderecoC
 user_router = APIRouter(prefix="/user", tags=["Usuarios"])
 
 
+# Carrega o perfil autenticado já com os endereços relacionados.
 @user_router.get("/", response_model=UserResponse)
 async def buscar_informacoes_usuario(db: Session = Depends(pegar_sessao), usuario: Usuarios = Depends(verificar_token)):
     info_usuario = (
@@ -26,6 +27,7 @@ async def buscar_informacoes_usuario(db: Session = Depends(pegar_sessao), usuari
     return info_usuario
 
 
+# Cadastra um endereço na conta atual e impede duplicatas pelo CEP e número.
 @user_router.post("/endereco", response_model=EnderecoResponse)
 async def adicionar_endereco_usuario(endereco_schema: EnderecoCompleto, db: Session = Depends(pegar_sessao), usuario: Usuarios = Depends(verificar_token)):
     # Garatindo que o cep tenha o formato correto, apenas números.
@@ -69,6 +71,7 @@ async def adicionar_endereco_usuario(endereco_schema: EnderecoCompleto, db: Sess
     return novo_endereco
 
 
+# Remove somente um endereço pertencente ao usuário autenticado.
 @user_router.delete("/endereco/{id_endereco}", status_code=status.HTTP_204_NO_CONTENT)
 async def deletar_endereco_usuario(
     id_endereco: int,
@@ -104,6 +107,7 @@ async def deletar_endereco_usuario(
     return None
 
 
+# Consulta o ViaCEP e adapta a resposta externa ao schema usado pelo frontend.
 @user_router.get("/cep/{cep}", response_model=EnderecoCepResponse)
 async def buscar_endereco_cep(cep: str):
     # Fazendo requisição

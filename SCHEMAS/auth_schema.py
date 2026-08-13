@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import date
 
 class UsuarioCadastro(BaseModel):
+    # Entrada da criação de conta, incluindo o perfil escolhido pelo usuário.
 
     nome_completo: str
     login: EmailStr
@@ -20,6 +21,7 @@ class UsuarioCadastro(BaseModel):
     )
 
 class UsuarioCadastroResposta(BaseModel):
+    # Retorna os dados públicos da conta sem expor a senha.
 
     nome_completo: str
     login: str
@@ -36,6 +38,7 @@ class UsuarioCadastroResposta(BaseModel):
     )
 
 class UsuarioLogin(BaseModel):
+    # Credenciais mínimas necessárias para iniciar uma sessão.
 
     login: str
     senha: str
@@ -49,6 +52,7 @@ class UsuarioLogin(BaseModel):
     )
 
 class UsuarioLoginResposta(BaseModel):
+    # A API devolve os dois tokens usados para manter e renovar o acesso.
 
     login: str
     access_token: str
@@ -63,6 +67,7 @@ class UsuarioLoginResposta(BaseModel):
     )
 
 class RecuperarSenha(BaseModel):
+    # Primeiro passo da recuperação: identificar a conta pelo e-mail.
 
     email: EmailStr
 
@@ -75,6 +80,7 @@ class RecuperarSenha(BaseModel):
     )
 
 class RecuperarSenhaCodigo(BaseModel):
+    # Confirma o código recebido junto da conta que solicitou a recuperação.
 
     email: EmailStr
     codigo: str
@@ -88,6 +94,7 @@ class RecuperarSenhaCodigo(BaseModel):
     )
 
 class RecuperarSenhaNovaSenha(BaseModel):
+    # Payload final da recuperação, validado novamente antes de salvar a nova senha.
 
     senha: str
 

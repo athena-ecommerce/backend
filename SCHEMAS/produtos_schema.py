@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from fastapi import UploadFile, File, Form
 
 class ArteCadastro(BaseModel):
+    # Dados da obra e do arquivo que serão recebidos no multipart do cadastro.
 
     nome: str
     tipo_arte: str
@@ -28,6 +29,7 @@ class ArteCadastro(BaseModel):
         descricao_foto: str = Form(...),
         dimensoes: str = Form(...),
     ):
+        # Converte campos multipart em um objeto Pydantic para manter a validação centralizada.
         return cls(
             nome=nome,
             tipo_arte=tipo_arte,
@@ -39,6 +41,7 @@ class ArteCadastro(BaseModel):
         )
 
 class ArteAtualizar(BaseModel):
+    # Reaproveita o mesmo contrato do cadastro, mas aplicado a uma obra já existente.
 
     nome: str
     tipo_arte: str
@@ -65,6 +68,7 @@ class ArteAtualizar(BaseModel):
         descricao_foto: str = Form(...),
         dimensoes: str = Form(...),
     ):
+        # O formulário de edição chega separado, então precisa ser remontado antes da validação.
         return cls(
             nome=nome,
             tipo_arte=tipo_arte,
@@ -76,6 +80,7 @@ class ArteAtualizar(BaseModel):
         )
 
 class ImagensQuadrosResposta(BaseModel):
+    # Metadados da imagem armazenada externamente e vinculada à obra.
 
     id_imagem_quadro: int
     imagem: str
@@ -88,6 +93,7 @@ class ImagensQuadrosResposta(BaseModel):
     )
 
 class ArteResposta(BaseModel):
+    # Resposta pública de uma obra com sua imagem e o artista responsável.
 
     id_produto: int
     nome: str

@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from MODELS.pedidos_produtos import Pedidos_Produtos
 
 class Produtos(Base):
+    # Representa a obra publicada e o artista responsável por ela.
     
     __tablename__ = "produtos"
 

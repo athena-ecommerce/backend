@@ -3,6 +3,7 @@ from datetime import date
 from SCHEMAS.address_schema import EnderecoResponse
 
 class UserResponse(BaseModel):
+    # Perfil completo para a área do usuário, incluindo os endereços cadastrados.
     id_usuario: int
     nome_completo: str
     login: str

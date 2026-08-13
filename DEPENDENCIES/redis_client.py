@@ -14,4 +14,5 @@ redis_cliente = redis.Redis(
 
 
 def pegar_redis() -> redis.Redis:
+    # As rotas reutilizam a mesma conexão para acessar os carrinhos com baixo custo.
     return redis_cliente

@@ -4,6 +4,7 @@ from datetime import datetime, UTC
 from MODELS import Base
 
 class Recuperacoes_Senhas(Base):
+    # Guarda o código temporário da recuperação até ele ser validado ou expirar.
 
     __tablename__ = "recuperacoes_senhas"
 

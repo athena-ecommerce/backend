@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from MODELS.usuarios import Usuarios
 
 class Enderecos(Base):
+    # Endereço separado do usuário para ser escolhido em diferentes compras.
 
     __tablename__ = "enderecos"
 

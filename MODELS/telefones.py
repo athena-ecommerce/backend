@@ -4,6 +4,7 @@ from datetime import datetime, UTC
 from MODELS import Base
 
 class Telefones(Base):
+    # Telefones ficam em uma tabela própria para permitir mais de um contato por usuário.
 
     __tablename__ = "telefones"
 

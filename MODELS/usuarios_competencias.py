@@ -4,6 +4,7 @@ from datetime import datetime, UTC
 from MODELS import Base
 
 class Usuarios_Competencias(Base):
+    # Tabela associativa que liga usuários às competências cadastradas.
 
     __tablename__ = "usuarios_competencias"
 
